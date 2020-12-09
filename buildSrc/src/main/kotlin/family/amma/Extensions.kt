@@ -61,7 +61,7 @@ fun PublishingExtension.configure(
 
     when (publicationType) {
         PublicationType.Mpp -> {
-            //TODO в kotlin 1.4.10 эта строчка вызывает проблемы, зависимость не синкается.
+            //TODO in kotlin 1.4.10 this line causes problems, the dependency does not sync.
             //publications.withType<MavenPublication>().configureEach(MavenPublication::configure)
         }
 

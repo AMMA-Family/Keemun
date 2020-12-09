@@ -3,12 +3,11 @@ package family.amma.tea
 import kotlinx.coroutines.CoroutineScope
 
 /**
- * Создать дефолтное состояние и запустить стартовые эффекты.
- * Если запуск происходит впервые, то `previous = null`.
- * Если же система восстанаваливается после смерти процесса и предыдущее состояние было сохранено,
- * то `previous != null`.
+ * Create a default state and run start effects.
+ * If the launch occurs for the first time, then `previous == null`.
+ * If the system is being restored after the death of the process and the previous state was saved, then `previous != null`.
  *
- * Пример использования:
+ * Example:
  * ```
  * val init: InitWithPrevious<UserModel, Msg> = { previous ->
  *     val defaultEffects = listOf<Effect<Msg>>(
@@ -63,7 +62,7 @@ typealias CrossUpdate<Model, InMsg, OutMsg> = (msg: InMsg, model: Model) -> Next
 /**
  * Creates view properties from the current state.
  */
-typealias View<Model, Props> = (model: Model) -> Props
+typealias View<Model, Props> = suspend (model: Model) -> Props
 
 /**
  * [Effect] builder function.

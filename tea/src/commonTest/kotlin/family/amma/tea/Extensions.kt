@@ -5,8 +5,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.withTimeoutOrNull
 
 /**
- * Собирает все элементы в течение [timeMillis] миллисекунд,
- * а потом выдаёт накопленные элементы в виде списка.
+ * Collects all the elements within [timeMillis] milliseconds, and then returns the accumulated elements as a list.
  */
 suspend fun <T> Flow<T>.collectTime(timeMillis: Long): List<T> {
     val result = ArrayList<T>()

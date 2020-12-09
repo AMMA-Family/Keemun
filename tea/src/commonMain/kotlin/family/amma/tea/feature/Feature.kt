@@ -10,7 +10,7 @@ import family.amma.tea.View
 
 /**
  * A common interface, the implementation of which controls all entities and starts the entire processing mechanism.
- * [Props] - view state, [Msg] - messages with which we will transform the [Model].
+ * [Props] - view state, [Msg] - messages with which we will transform the Model.
  */
 interface Feature<Msg : Any, Props : Any> {
     /** [Props] to render to the screen. */
@@ -40,7 +40,6 @@ interface Feature<Msg : Any, Props : Any> {
  * @param effectContext The context in which the effects will run.
  * @param renderContext The context in which we will render the interface.
  */
-@OptIn(ExperimentalCoroutinesApi::class)
 class TeaFeature<Model : Any, Msg : Any, Props : Any>(
     previousModel: Model?,
     init: InitWithPrevious<Model, Msg>,
@@ -54,7 +53,9 @@ class TeaFeature<Model : Any, Msg : Any, Props : Any>(
     private val messageSharedFlow = MutableSharedFlow<Msg>()
     private val states: MutableStateFlow<Model>
 
-    override val props: Flow<Props> get() = states.mapLatest(view::invoke).flowOn(Dispatchers.Default)
+    override val props: Flow<Props>
+        @OptIn(ExperimentalCoroutinesApi::class)
+        get() = states.mapLatest(view::invoke).flowOn(Dispatchers.Default)
 
     init {
         val (defaultModel, startEffect) = init(previousModel)

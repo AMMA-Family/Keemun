@@ -117,7 +117,7 @@ class VMLazy<VM : ViewModel>(
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    // TODO только для устройств Huawei.
+                    // for Huawei devices only.
                     factory.create(viewModelClass.java).also { cached = it }
                 }
             } else {

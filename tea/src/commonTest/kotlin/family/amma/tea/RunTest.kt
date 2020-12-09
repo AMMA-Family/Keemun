@@ -3,7 +3,6 @@ package family.amma.tea
 import kotlinx.coroutines.CoroutineScope
 
 /**
- * В kotlin-js нет `runBlocking`, поэтому в мпп его тоже нет.
- * Приходится самому делать функцию для запуска тестов.
+ * There is no runBlocking in kotlin-js, so there is no runBlocking in mpp either.
  */
 expect fun runTest(block: suspend CoroutineScope.() -> Unit)

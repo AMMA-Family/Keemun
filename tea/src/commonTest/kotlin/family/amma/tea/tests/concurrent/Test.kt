@@ -14,7 +14,6 @@ class ConcurrentTest {
         repeat(times = 10) { run(dispatchCount = 50) }
     }
 
-    /** Интеграционный тест фичи. */
     private suspend fun run(dispatchCount: Int) {
         val scope = CoroutineScope(Dispatchers.Default)
         val feature = feature(scope, dispatchCount)

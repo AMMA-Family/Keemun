@@ -7,7 +7,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class ConsistentTest {
-    /** Проверка работы [consistentUpdate]. */
     @Test
     fun testUpdater1() {
         val defaultModel = ConsistentModel(progress = false, loadedUser = null)
@@ -19,7 +18,6 @@ class ConsistentTest {
         )
     }
 
-    /** Проверка работы [consistentUpdate]. */
     @Test
     fun testUpdater2() {
         val defaultModel = ConsistentModel(progress = true, loadedUser = null)
@@ -37,7 +35,6 @@ class ConsistentTest {
         repeat(times = 10) { fullInteraction() }
     }
 
-    /** Интеграционный тест фичи. */
     private suspend fun fullInteraction() {
         val scope = CoroutineScope(Dispatchers.Default)
         val feature = feature(scope)
