@@ -1,0 +1,55 @@
+###############
+### Android ###
+###############
+*.apk
+*.ap_
+*.class
+*.dex
+*.iml
+*.iws
+*.log
+/build
+/.gradle
+/.idea
+/.navigation
+/bin
+build
+/captures
+/gen
+/out/**
+/proguard
+local.properties
+/lint/reports/**
+fastlane/README.md
+fastlane/report.xml
+
+
+###############
+### Windows ###
+###############
+$RECYCLE.BIN/
+*.cab
+*.lnk
+*.msi
+*.msm
+*.msp
+Desktop.ini
+ehthumbs.db
+Thumbs.db
+
+###############
+###  Linux  ###
+###############
+*~
+.directory
+.fuse_hidden*
+.Trash-*
+
+###############
+###  MacOS  ###
+###############
+._*
+.AppleDouble
+*.DS_Store
+.LSOverride
+/.gradle/
