@@ -4,9 +4,26 @@
 
 ### Add to your Fragment/Activity
 
-```koltin
+```kotlin
 // featureParams: () -> SomeFeatureParams
 private val feature by androidConnectors(featureParams = featureParams)
+```
+
+### Entities
+```kotlin
+@Parcelize
+data class Model(
+    val name: String
+) : Parcelable
+
+data class Props(
+    val nameLength: Int
+)
+
+sealed class Msg {
+    object LoadUserName : Msg()
+    data class UserNameWasLoaded(val name: String) : Msg()
+}
 ```
 
 ### An example of creating `FeatureParams`:
@@ -53,6 +70,8 @@ override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     feature.render(this) { props ->
         nameLengthTextView.text = props.nameLength
     }
+    // OR 
+    // feature.collectWithLifecycle(viewLifecycleOwner) { props -> }
 }
 ```
 
