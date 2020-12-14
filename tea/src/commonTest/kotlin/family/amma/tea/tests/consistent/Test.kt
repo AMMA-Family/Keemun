@@ -1,7 +1,7 @@
 package family.amma.tea.tests.consistent
 
 import kotlinx.coroutines.*
-import family.amma.tea.collectTime
+import family.amma.tea.notTakeAfter
 import family.amma.tea.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -32,31 +32,23 @@ class ConsistentTest {
 
     @Test
     fun full() = runTest {
-        repeat(times = 10) { fullInteraction() }
-    }
-
-    private suspend fun fullInteraction() {
         val scope = CoroutineScope(Dispatchers.Default)
         val feature = feature(scope)
         val userId = 101
-
-        GlobalScope.launch {
-            delay(100)
+        val expected = listOf(
+            ConsistentModel(progress = false, loadedUser = null),
+            ConsistentModel(progress = true, loadedUser = null),
+            ConsistentModel(progress = false, loadedUser = User(id = userId))
+        )
+        scope.launch {
             feature.dispatch(ConsistentMsg.LoadUserById(id = userId))
         }
 
         val modelsList = feature
             .props
-            .collectTime(timeMillis = 300)
+            .notTakeAfter(timeMillis = 300, expected = expected)
         try {
-            assertEquals(
-                actual = modelsList,
-                expected = listOf(
-                    ConsistentModel(progress = false, loadedUser = null),
-                    ConsistentModel(progress = true, loadedUser = null),
-                    ConsistentModel(progress = false, loadedUser = User(id = userId))
-                )
-            )
+            assertEquals(actual = modelsList, expected = expected)
         } finally {
             scope.cancel()
         }

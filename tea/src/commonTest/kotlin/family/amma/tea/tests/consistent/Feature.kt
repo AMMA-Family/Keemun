@@ -1,13 +1,13 @@
 package family.amma.tea.tests.consistent
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
 import family.amma.tea.effect
 import family.amma.tea.none
 import family.amma.tea.InitWithPrevious
 import family.amma.tea.feature.TeaFeature
 import family.amma.tea.Update
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 data class User(val id: Int)
 
@@ -47,7 +47,5 @@ val consistentUpdate: Update<ConsistentModel, ConsistentMsg> = { msg, model ->
     }
 }
 
-private suspend fun loadUserById(id: Int): User {
-    delay(10)
-    return User(id)
-}
+private suspend fun loadUserById(id: Int): User =
+    withContext(Dispatchers.Default) { User(id) }
