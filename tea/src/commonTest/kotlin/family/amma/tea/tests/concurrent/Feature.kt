@@ -14,9 +14,9 @@ import kotlinx.coroutines.Dispatchers
 data class ConcurrentModel(val flow1: Int, val flow2: Int, val flow3: Int)
 
 sealed class ConcurrentMsg {
-    data class ChangeFlow1(val newValue: Int) : ConcurrentMsg()
-    data class ChangeFlow2(val newValue: Int) : ConcurrentMsg()
-    data class ChangeFlow3(val newValue: Int) : ConcurrentMsg()
+    object IncFlow1 : ConcurrentMsg()
+    object IncFlow2 : ConcurrentMsg()
+    object IncFlow3 : ConcurrentMsg()
 }
 
 fun feature(scope: CoroutineScope, repeatCount: Int) = TeaFeature(
@@ -26,6 +26,7 @@ fun feature(scope: CoroutineScope, repeatCount: Int) = TeaFeature(
     view = { it },
     featureScope = scope,
     onEachModel = {},
+    effectContext = Dispatchers.Default,
     renderContext = Dispatchers.Default
 )
 
@@ -33,22 +34,22 @@ private fun init(repeatCount: Int): InitWithPrevious<ConcurrentModel, Concurrent
     val model = previous ?: ConcurrentModel(flow1 = 0, flow2 = 0, flow3 = 0)
     model to batch(
         effect { dispatch ->
-            (1..repeatCount).asFlow().collect { dispatch(ConcurrentMsg.ChangeFlow1(it)) }
+            (1..repeatCount).asFlow().collect { dispatch(ConcurrentMsg.IncFlow1) }
         },
         effect { dispatch ->
-            (1..repeatCount).asFlow().collect { dispatch(ConcurrentMsg.ChangeFlow2(it)) }
+            (1..repeatCount).asFlow().collect { dispatch(ConcurrentMsg.IncFlow2) }
         },
         effect { dispatch ->
-            (1..repeatCount).asFlow().collect { dispatch(ConcurrentMsg.ChangeFlow3(it)) }
+            (1..repeatCount).asFlow().collect { dispatch(ConcurrentMsg.IncFlow3) }
         }
     )
 }
 
 private val update: Update<ConcurrentModel, ConcurrentMsg> = { msg, model ->
     when (msg) {
-        is ConcurrentMsg.ChangeFlow1 -> model.copy(flow1 = msg.newValue) to none()
-        is ConcurrentMsg.ChangeFlow2 -> model.copy(flow2 = msg.newValue) to none()
-        is ConcurrentMsg.ChangeFlow3 -> model.copy(flow3 = msg.newValue) to none()
+        is ConcurrentMsg.IncFlow1 -> model.copy(flow1 = model.flow1 + 1) to none()
+        is ConcurrentMsg.IncFlow2 -> model.copy(flow2 = model.flow2 + 1) to none()
+        is ConcurrentMsg.IncFlow3 -> model.copy(flow3 = model.flow3 + 1) to none()
     }
 }
 

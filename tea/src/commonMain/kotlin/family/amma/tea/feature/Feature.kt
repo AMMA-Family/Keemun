@@ -16,17 +16,23 @@ interface Feature<Msg : Any, Props : Any> {
     /** [Props] to render to the screen. */
     val props: Flow<Props>
 
+    /** Feature scope. */
+    val scope: CoroutineScope
+
     /** Sending messages asynchronously. */
     infix fun dispatch(msg: Msg)
 
     /** Sending messages synchronously. */
     suspend fun syncDispatch(msg: Msg)
 
-    /** Sequential sending of an unspecified number of messages. */
-    infix fun sequentialDispatch(lambda: suspend (dispatch: Dispatch<Msg>) -> Unit)
-
-    /** Subscription of another feature to this feature. */
     suspend fun <OtherMsg : Any> bind(other: Feature<OtherMsg, *>, transform: (Msg) -> Effect<OtherMsg>)
+}
+
+/** Sequential sending of an unspecified number of messages. */
+inline infix fun <Msg : Any, Props : Any> Feature<Msg, Props>.sequentialDispatch(
+    crossinline lambda: suspend (dispatch: Dispatch<Msg>) -> Unit
+) {
+    scope.launch { lambda.invoke(::syncDispatch) }
 }
 
 /**
@@ -47,8 +53,8 @@ class TeaFeature<Model : Any, Msg : Any, Props : Any>(
     private val view: View<Model, Props>,
     featureScope: CoroutineScope,
     private val onEachModel: Dispatch<Model>,
-    private val effectContext: CoroutineDispatcher = Dispatchers.Default,
-    private val renderContext: CoroutineDispatcher = Dispatchers.Main
+    private val effectContext: CoroutineDispatcher,
+    private val renderContext: CoroutineDispatcher
 ) : Feature<Msg, Props>, CoroutineScope by featureScope {
     private val messageSharedFlow = MutableSharedFlow<Msg>()
     private val states: MutableStateFlow<Model>
@@ -57,13 +63,15 @@ class TeaFeature<Model : Any, Msg : Any, Props : Any>(
         @OptIn(ExperimentalCoroutinesApi::class)
         get() = states.mapLatest(view::invoke).flowOn(Dispatchers.Default)
 
+    override val scope: CoroutineScope get() = this
+
     init {
         val (defaultModel, startEffect) = init(previousModel)
         states = MutableStateFlow(defaultModel)
         launch(renderContext) { states.collect(onEachModel) }
         launch(effectContext) {
             messageSharedFlow
-                .onSubscription { schedule(startEffect) }
+                .onSubscription { startEffect?.let(::schedule) }
                 .collect(::handle)
         }
     }
@@ -71,15 +79,11 @@ class TeaFeature<Model : Any, Msg : Any, Props : Any>(
     private fun handle(msg: Msg) {
         val (newState, effect) = update(msg, states.value)
         states.value = newState
-        schedule(effect)
+        effect?.let(::schedule)
     }
 
     override infix fun dispatch(msg: Msg) {
-        sequentialDispatch { dispatch -> dispatch(msg) }
-    }
-
-    override fun sequentialDispatch(lambda: suspend (dispatch: Dispatch<Msg>) -> Unit) {
-        launch { lambda.invoke(::syncDispatch) }
+        scope.launch { syncDispatch(msg) }
     }
 
     override suspend fun syncDispatch(msg: Msg) {

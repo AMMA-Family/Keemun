@@ -28,6 +28,7 @@ fun feature(scope: CoroutineScope) = TeaFeature(
     view = { it },
     featureScope = scope,
     onEachModel = {},
+    effectContext = Dispatchers.Default,
     renderContext = Dispatchers.Default
 )
 

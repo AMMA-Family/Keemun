@@ -5,7 +5,8 @@ import kotlinx.coroutines.launch
 /**
  * Create an empty [Effect].
  */
-fun <Msg> none(): Effect<Msg> = {}
+@Suppress("NOTHING_TO_INLINE")
+inline fun <Msg> none(): Effect<Msg>? = null
 
 /**
  * Compose [effects] into a single [Effect].
@@ -30,4 +31,3 @@ fun <A, B> map(effect: Effect<A>, transform: (A) -> B): Effect<B> =
  */
 fun <A, B, C, D> bimap(next: Pair<A, Effect<B>>, transformA: (A) -> C, transformB: (B) -> D): Pair<C, Effect<D>> =
     transformA(next.first) to map(next.second, transformB)
-

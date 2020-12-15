@@ -47,7 +47,7 @@ typealias Effect<Msg> = suspend CoroutineScope.(dispatch: Dispatch<Msg>) -> Any?
 /**
  * A pair of the next state and side-effects.
  */
-typealias Next<Model, Msg> = Pair<Model, Effect<Msg>>
+typealias Next<Model, Msg> = Pair<Model, Effect<Msg>?>
 
 /**
  * Creates a next state and side-effects from a message and current state.

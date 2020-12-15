@@ -21,6 +21,7 @@ import kotlinx.coroutines.launch
 import family.amma.tea.feature.Feature
 import family.amma.tea.feature.FeatureParams
 import family.amma.tea.feature.TeaFeature
+import kotlinx.coroutines.Dispatchers
 
 /**
  * Wrapper for [Feature] with saving state and lifecycle handling.
@@ -33,13 +34,17 @@ internal class Connector<Model : Parcelable, Msg : Any, Props : Any>(
 
     override val props: Flow<Props> get() = feature.props
 
+    override val scope: CoroutineScope get() = viewModelScope
+
     init {
         feature = TeaFeature(
             previousModel = savedStateHandle.get(MODEL_KEY),
             init = featureParams.init,
             update = featureParams.update,
             view = featureParams.view,
-            featureScope = viewModelScope,
+            featureScope = scope,
+            effectContext = Dispatchers.Default,
+            renderContext = Dispatchers.Main,
             onEachModel = {
                 savedStateHandle.set(MODEL_KEY, it)
                 featureParams.onEachModel?.invoke(it)
@@ -48,8 +53,6 @@ internal class Connector<Model : Parcelable, Msg : Any, Props : Any>(
     }
 
     override infix fun dispatch(msg: Msg) = feature dispatch msg
-
-    override infix fun sequentialDispatch(lambda: suspend (dispatch: Dispatch<Msg>) -> Unit) = feature.sequentialDispatch(lambda)
 
     override suspend fun syncDispatch(msg: Msg) = feature.syncDispatch(msg)
 
