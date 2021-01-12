@@ -1,18 +1,18 @@
-package family.amma.tea.tests.concurrent
+package family.amma.tea.tests.completeness
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
-import family.amma.tea.notTakeAfter
 import family.amma.tea.runTest
+import family.amma.tea.notTakeAfter
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class ConcurrentTest {
+class CompletenessTest {
     @Test
     fun run() = runTest {
         val dispatchCount = 50
-        val expected = ConcurrentModel(
+        val expected = CompletenessModel(
             flow1 = dispatchCount,
             flow2 = dispatchCount,
             flow3 = dispatchCount

@@ -9,7 +9,7 @@ import kotlinx.coroutines.CoroutineScope
  *
  * Example:
  * ```
- * val init: InitWithPrevious<UserModel, Msg> = { previous ->
+ * val init: InitWithPrevious<UserState, Msg> = { previous ->
  *     val defaultEffects = listOf<Effect<Msg>>(
  *         effect(Msg.StartAnimation),
  *         effect(Msg.UpdateProgress)
@@ -17,7 +17,7 @@ import kotlinx.coroutines.CoroutineScope
  *     if (previous != null) {
  *         previous to batch(defaultEffects)
  *     } else {
- *         UserModel(
+ *         UserState(
  *             name = null,
  *             photo = null
  *         ) to batch(
@@ -30,9 +30,31 @@ import kotlinx.coroutines.CoroutineScope
  *             }
  *         )
  *     }
+ * }
  * ```
  */
-typealias InitWithPrevious<Model, Msg> = (previous: Model?) -> Next<Model, Msg>
+typealias InitWithPrevious<State, Msg> = (previous: State?) -> Next<State, Msg>
+
+/**
+ * @param preEffect Effect that will return the necessary dependencies to initialize the state.
+ * @param init Create a default state by previous state and dependencies and run start effects.
+ *
+ * `previous: State?` - If the launch occurs for the first time, then `previous == null`.
+ *
+ * If the system is being restored after the death of the process and the previous state was saved, then `previous != null`.
+ */
+data class InitFeature<State, Msg, Deps>(
+    val preEffect: suspend CoroutineScope.() -> Deps,
+    val init: (previous: State?, Deps) -> Next<State, Msg>
+)
+
+/** Create [InitFeature] without pre-effect. */
+@Suppress("FunctionName")
+fun <State, Msg> InitFeature(initWithPrevious: InitWithPrevious<State, Msg>): InitFeature<State, Msg, Unit> =
+    InitFeature(
+        preEffect = {},
+        init = { previous: State?, _ -> initWithPrevious(previous) }
+    )
 
 /**
  * Dispatches a message to the runtime.
@@ -42,39 +64,24 @@ typealias Dispatch<Msg> = suspend (msg: Msg) -> Unit
 /**
  * Runs a side-effect away from the runtime.
  */
-typealias Effect<Msg> = suspend CoroutineScope.(dispatch: Dispatch<Msg>) -> Any?
+typealias Effect<Msg> = suspend CoroutineScope.(dispatch: Dispatch<Msg>) -> Unit
 
 /**
  * A pair of the next state and side-effects.
  */
-typealias Next<Model, Msg> = Pair<Model, Effect<Msg>?>
+typealias Next<State, Msg> = Pair<State, Effect<Msg>?>
 
 /**
  * Creates a next state and side-effects from a message and current state.
  */
-typealias Update<Model, Msg> = (msg: Msg, model: Model) -> Next<Model, Msg>
+typealias Update<State, Msg> = (msg: Msg, state: State) -> Next<State, Msg>
 
 /**
  * Creates a next state and side-effects (Which will send the `OutMsg`) from a `InMsg` and current state.
  */
-typealias CrossUpdate<Model, InMsg, OutMsg> = (msg: InMsg, model: Model) -> Next<Model, OutMsg>
+typealias CrossUpdate<State, InMsg, OutMsg> = (msg: InMsg, state: State) -> Next<State, OutMsg>
 
 /**
  * Creates view properties from the current state.
  */
-typealias View<Model, Props> = suspend (model: Model) -> Props
-
-/**
- * [Effect] builder function.
- */
-fun <Msg : Any> effect(block: Effect<Msg>): Effect<Msg> = block
-
-/**
- * [Update] builder function.
- */
-fun <Model : Any, Msg : Any> update(block: Update<Model, Msg>): Update<Model, Msg> = block
-
-/**
- * [View] builder function.
- */
-fun <Model : Any, Props : Any> view(block: View<Model, Props>): View<Model, Props> = block
+typealias ViewState<Model, Props> = suspend (model: Model) -> Props

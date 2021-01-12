@@ -31,3 +31,29 @@ fun <A, B> map(effect: Effect<A>, transform: (A) -> B): Effect<B> =
  */
 fun <A, B, C, D> bimap(next: Pair<A, Effect<B>>, transformA: (A) -> C, transformB: (B) -> D): Pair<C, Effect<D>> =
     transformA(next.first) to map(next.second, transformB)
+
+/**
+ * [Effect] builder function.
+ */
+fun <Msg : Any> effect(block: Effect<Msg>): Effect<Msg> = block
+
+/**
+ * Wrap the message in an effect.
+ * Example:
+ * ```
+ * val msg: Msg = Msg.ObserveUserInfo
+ * val effect: Effect<Msg> = effect(msg)
+ * ```
+ */
+fun <Msg : Any> effect(msg: Msg): Effect<Msg> =
+    effect { dispatch -> dispatch(msg) }
+
+/**
+ * [Update] builder function.
+ */
+fun <State : Any, Msg : Any> update(block: Update<State, Msg>): Update<State, Msg> = block
+
+/**
+ * [ViewState] builder function.
+ */
+fun <State : Any, Props : Any> viewState(block: ViewState<State, Props>): ViewState<State, Props> = block

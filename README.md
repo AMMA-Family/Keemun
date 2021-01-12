@@ -1,77 +1,79 @@
 # multiplatform-tea-architecture
 
-## How to use:
-
-### Add to your Fragment/Activity
-
-```kotlin
-// featureParams: () -> SomeFeatureParams
-private val feature by androidConnectors(featureParams = featureParams)
-```
+## Multiplatform part
 
 ### Entities
 ```kotlin
 @Parcelize
 data class Model(
-    val name: String
+    val user: User?
 ) : Parcelable
 
 data class Props(
-    val nameLength: Int
+    // Example
+    // English - "Age: 30"
+    // Russian - "Возраст: 30"
+    // etc
+    val localizedAge: String?
 )
 
 sealed class Msg {
-    object LoadUserName : Msg()
-    data class UserNameWasLoaded(val name: String) : Msg()
+    data class UserWasLoaded(val user: User) : Msg()
 }
 ```
 
 ### An example of creating `FeatureParams`:
 
 ```kotlin
-typealias SomeFeatureParams = FeatureParams<Model, Msg, Props>
+typealias SomeFeatureParams = FeatureParams<Model, Msg>
 
-internal fun someFeatureParams(repo: Repository): SomeFeatureParams =
+internal fun someFeatureParams(repo: UserRepository): SomeFeatureParams =
     FeatureParams(
-        init = init,
-        update = ModelUpdater(repo).update,
-        view = view
+        init = init(repo),
+        update = ModelUpdater(),
     )
     
-private val init: InitWithPrevious<Model, Msg> = { previous: Model? ->
+private fun init(repo: UserRepository): InitWithPrevious<Model, Msg> = { previous: Model? ->
     (previous ?: Model(
-        name = null
-    )) to effect(Msg.LoadUserName)
+        user = null
+    )) to effect{ dispatch ->
+        val user = repo.loadUser()
+        dispatch(Msg.UserWasLoaded(user))
+    }   
 }
 
-private val view: View<Model, Props> = { model ->
-    Props(
-        nameLength = model.name.length
-    )
-}
-
-class ModelUpdater(private val repo: Repository) : Update<Model, Msg> {
+class ModelUpdater : Update<Model, Msg> {
     override fun invoke(msg: Msg, model: Model) =
         when (msg) {
-            is Msg.LoadUserName -> model to effect { dispatch ->
-                val name = repo.loadUserName()
-                dispatch(Msg.UserNameWasLoaded(name))
-            }   
-            is Msg.UserNameWasLoaded -> model.copy(name = msg.name) to none()
+            is Msg.UserWasLoaded -> model.copy(user = msg.user) to none()
         }
 }
 ```
 
-### Subscribe to the state
+## Platform part (Android)
 
 ```kotlin
-override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-    super.onViewCreated(view, savedInstanceState)
-    feature.render(this) { props ->
-        nameLengthTextView.text = props.nameLength
+// ViewState<Model, Props> = suspend (Model) -> Props 
+private fun someViewState(context: Context): ViewState<Model, Props> = { model ->
+    Props(
+        localizedAge = model.user?.age?.let { context.getString(R.string.age, it) }
+    )
+}
+```
+
+### Add to your Fragment/Activity
+```kotlin
+class SomeFragment(val featureParameters: () -> SomeFeatureParams) : Fragment(R.layout.fragment_some) {
+    private val feature by androidConnectors(featureParameters, viewState = { someViewState(context) })
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        feature.render(this) { props ->
+            ageTextView.text = props.localizedAge
+        }
+        // OR 
+        // feature.collectWithLifecycle(viewLifecycleOwner, Lifecycle.State.STARTED) { props -> }
     }
-    // OR 
-    // feature.collectWithLifecycle(viewLifecycleOwner) { props -> }
 }
 ```
 

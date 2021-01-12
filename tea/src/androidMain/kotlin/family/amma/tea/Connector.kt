@@ -19,57 +19,53 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 import family.amma.tea.feature.Feature
-import family.amma.tea.feature.FeatureParams
-import family.amma.tea.feature.TeaFeature
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.mapLatest
 
 /**
  * Wrapper for [Feature] with saving state and lifecycle handling.
  */
-internal class Connector<Model : Parcelable, Msg : Any, Props : Any>(
-    featureParams: FeatureParams<Model, Msg, Props>,
+class Connector<Model : Parcelable, Msg : Any, Props : Any>(
+    createFeature: (CoroutineScope, Model?) -> Feature<Model, Msg>,
+    private val viewState: () -> ViewState<Model, Props>,
     savedStateHandle: SavedStateHandle
-) : ViewModel(), Feature<Msg, Props> {
-    private val feature: Feature<Msg, Props>
-
-    override val props: Flow<Props> get() = feature.props
+) : ViewModel(), Feature<Props, Msg> {
+    private val feature: Feature<Model, Msg>
 
     override val scope: CoroutineScope get() = viewModelScope
+    override val messages: SharedFlow<Msg> get() = feature.messages
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override val states: Flow<Props>
+        get() = feature.states.mapLatest(viewState()).flowOn(Dispatchers.Default)
 
     init {
-        feature = TeaFeature(
-            previousModel = savedStateHandle.get(MODEL_KEY),
-            init = featureParams.init,
-            update = featureParams.update,
-            view = featureParams.view,
-            featureScope = scope,
-            effectContext = Dispatchers.Default,
-            renderContext = Dispatchers.Main,
-            onEachModel = {
+        feature = createFeature(scope, savedStateHandle.get(MODEL_KEY))
+        scope.launch {
+            feature.states.collect {
                 savedStateHandle.set(MODEL_KEY, it)
-                featureParams.onEachModel?.invoke(it)
             }
-        )
+        }
     }
 
     override infix fun dispatch(msg: Msg) = feature dispatch msg
 
-    override suspend fun syncDispatch(msg: Msg) = feature.syncDispatch(msg)
+    override suspend fun syncDispatch(msg: Msg) = feature syncDispatch msg
 
-    override suspend fun <OtherMsg : Any> bind(other: Feature<OtherMsg, *>, transform: (Msg) -> Effect<OtherMsg>) {
-        feature.bind(other, transform)
-    }
-
-    /** ViewModelFactory for passing [featureParams] to [Connector]. */
+    /** ViewModelFactory for passing [feature] to [Connector]. */
     class Factory<Model : Parcelable, Msg : Any, Props : Any>(
         owner: SavedStateRegistryOwner,
         defaultArgs: Bundle? = null,
-        private val featureParams: () -> FeatureParams<Model, Msg, Props>
+        private val feature: (CoroutineScope, Model?) -> Feature<Model, Msg>,
+        private val viewState: () -> ViewState<Model, Props>,
     ) : AbstractSavedStateViewModelFactory(owner, defaultArgs) {
 
         @Suppress(names = ["UNCHECKED_CAST"])
         override fun <T : ViewModel> create(key: String, modelClass: Class<T>, handle: SavedStateHandle): T =
-            Connector(featureParams(), handle) as T
+            Connector(feature, viewState, handle) as T
     }
 
     private companion object {
@@ -77,28 +73,25 @@ internal class Connector<Model : Parcelable, Msg : Any, Props : Any>(
     }
 }
 
-/** Render [Props] with [lifecycleState]. */
-inline fun <Msg : Any, Props : Any> Feature<Msg, Props>.render(
+/** Render [State] with [lifecycleState]. */
+@OptIn(FlowPreview::class)
+inline fun <State : Any, Msg : Any> Feature<State, Msg>.render(
     fragment: Fragment,
     debounceTime: Long = 0,
     lifecycleState: Lifecycle.State = Lifecycle.State.STARTED,
-    crossinline block: suspend (Props) -> Unit
+    crossinline block: suspend (State) -> Unit
 ): Job =
-    props.collectWithLifecycle(fragment.viewLifecycleOwner, debounceTime, lifecycleState, block)
+    states
+        .let { if (debounceTime > 0) it.debounce(debounceTime) else it }
+        .collectWithLifecycle(fragment.viewLifecycleOwner, lifecycleState, block)
 
 /** Collecting [T] with [lifecycleState] (without [Lifecycle.State.DESTROYED]). */
-@OptIn(FlowPreview::class)
 inline fun <T> Flow<T>.collectWithLifecycle(
     lifecycleOwner: LifecycleOwner,
-    debounceTime: Long = 0,
-    lifecycleState: Lifecycle.State = Lifecycle.State.STARTED,
+    lifecycleState: Lifecycle.State,
     crossinline block: suspend (T) -> Unit
 ): Job {
-    val collectBlock: suspend CoroutineScope.() -> Unit = {
-        this@collectWithLifecycle
-            .let { if (debounceTime > 0) it.debounce(debounceTime) else it }
-            .collect(block)
-    }
+    val collectBlock: suspend CoroutineScope.() -> Unit = { collect(block) }
     return when (lifecycleState) {
         Lifecycle.State.INITIALIZED -> lifecycleOwner.lifecycleScope.launch(block = collectBlock)
         Lifecycle.State.CREATED -> lifecycleOwner.lifecycleScope.launchWhenCreated(collectBlock)

@@ -1,13 +1,10 @@
 package family.amma.tea.tests.consistent
 
 import kotlinx.coroutines.CoroutineScope
-import family.amma.tea.effect
-import family.amma.tea.none
-import family.amma.tea.InitWithPrevious
-import family.amma.tea.feature.TeaFeature
-import family.amma.tea.Update
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import family.amma.tea.*
+import family.amma.tea.feature.TeaFeature
 
 data class User(val id: Int)
 
@@ -22,14 +19,10 @@ sealed class ConsistentMsg {
 }
 
 fun feature(scope: CoroutineScope) = TeaFeature(
-    previousModel = null,
-    init = init,
-    update = consistentUpdate,
-    view = { it },
+    previousState = null,
     featureScope = scope,
-    onEachModel = {},
-    effectContext = Dispatchers.Default,
-    renderContext = Dispatchers.Default
+    initFeature = InitFeature(init),
+    update = consistentUpdate
 )
 
 private val init: InitWithPrevious<ConsistentModel, ConsistentMsg> = { previous ->

@@ -45,7 +45,7 @@ class ConsistentTest {
         }
 
         val modelsList = feature
-            .props
+            .states
             .notTakeAfter(timeMillis = 300, expected = expected)
         try {
             assertEquals(actual = modelsList, expected = expected)
