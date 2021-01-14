@@ -18,18 +18,18 @@ interface Binder {
         other: Feature<*, Msg>,
         effect: (State) -> Effect<Msg>
     ): Job =
-        bind(feature, other, getValue = { it }, effect)
+        bind(feature, other, valueExtractor = { it }, effect)
 
     /** [feature] [State] -> [feature] [Value] -> [other]. */
     fun <State : Any, Msg : Any, Value : Any?> bind(
         feature: Feature<State, *>,
         other: Feature<*, Msg>,
-        getValue: (State) -> Value,
+        valueExtractor: (State) -> Value,
         effect: (Value) -> Effect<Msg>
     ): Job = scope.launch(effectContext) {
         feature
             .states
-            .map { getValue(it) }
+            .map { valueExtractor(it) }
             .distinctUntilChanged()
             .collect { value -> effect(value).invoke(this, other::syncDispatch) }
     }

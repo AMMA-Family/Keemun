@@ -15,7 +15,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
 import androidx.savedstate.SavedStateRegistryOwner
 import family.amma.tea.feature.Feature
-import family.amma.tea.feature.FeatureParameters
+import family.amma.tea.feature.FeatureParams
 import family.amma.tea.feature.TeaFeature
 import kotlinx.coroutines.CoroutineScope
 import kotlin.reflect.KClass
@@ -23,11 +23,11 @@ import kotlin.reflect.KClass
 /**
  * Create [Feature] with restoration of the previous state (if it was).
  * @see viewModels
- * @see FeatureParameters
+ * @see FeatureParams
  * @see InitializationOptions
  */
-fun <Model : Parcelable, Msg : Any, Props : Any, Deps> Fragment.androidConnectors(
-    featureParameters: () -> FeatureParameters<Model, Msg, Deps>,
+fun <Model : Parcelable, Msg : Any, Props : Any> Fragment.androidConnectors(
+    featureParams: () -> FeatureParams<Model, Msg>,
     viewState: () -> ViewState<Model, Props>,
     defaultArgs: Bundle? = null,
     key: String? = null,
@@ -35,7 +35,7 @@ fun <Model : Parcelable, Msg : Any, Props : Any, Deps> Fragment.androidConnector
     initOptions: InitializationOptions = InitializationOptions.WithLifecycle(Lifecycle.Event.ON_CREATE)
 ): Lazy<Feature<Props, Msg>> =
     createVMLazy<Connector<Model, Msg, Props>, Model, Msg, Props>(
-        feature = { scope, model -> teaFeature(scope, model, featureParameters()) },
+        feature = { scope, model -> teaFeature(scope, model, featureParams()) },
         viewState = viewState,
         defaultArgs = defaultArgs,
         key = key,
@@ -46,11 +46,11 @@ fun <Model : Parcelable, Msg : Any, Props : Any, Deps> Fragment.androidConnector
 /**
  * Create [Feature] with restoration of the previous state (if it was).
  * @see viewModels
- * @see FeatureParameters
+ * @see FeatureParams
  * @see InitializationOptions
  */
-fun <Model : Parcelable, Msg : Any, Props : Any, Deps> Fragment.sharedAndroidConnectors(
-    featureParameters: () -> FeatureParameters<Model, Msg, Deps>,
+fun <Model : Parcelable, Msg : Any, Props : Any> Fragment.sharedAndroidConnectors(
+    featureParams: () -> FeatureParams<Model, Msg>,
     viewState: () -> ViewState<Model, Props>,
     defaultArgs: Bundle? = null,
     key: String? = null,
@@ -58,7 +58,7 @@ fun <Model : Parcelable, Msg : Any, Props : Any, Deps> Fragment.sharedAndroidCon
     initOptions: InitializationOptions = InitializationOptions.WithLifecycle(Lifecycle.Event.ON_CREATE)
 ): Lazy<Feature<Props, Msg>> =
     createVMLazy<Connector<Model, Msg, Props>, Model, Msg, Props>(
-        feature = { scope, model -> teaFeature(scope, model, featureParameters()) },
+        feature = { scope, model -> teaFeature(scope, model, featureParams()) },
         viewState = viewState,
         defaultArgs = defaultArgs,
         key = key,
@@ -69,18 +69,18 @@ fun <Model : Parcelable, Msg : Any, Props : Any, Deps> Fragment.sharedAndroidCon
 /**
  * Create [Feature] with restoration of the previous state (if it was).
  * @see viewModels
- * @see FeatureParameters
+ * @see FeatureParams
  * @see InitializationOptions
  */
-fun <Model : Parcelable, Msg : Any, Props : Any, Deps> ComponentActivity.androidConnectors(
-    featureParameters: () -> FeatureParameters<Model, Msg, Deps>,
+fun <Model : Parcelable, Msg : Any, Props : Any> ComponentActivity.androidConnectors(
+    featureParams: () -> FeatureParams<Model, Msg>,
     viewState: () -> ViewState<Model, Props>,
     defaultArgs: Bundle? = null,
     key: String? = null,
     initOptions: InitializationOptions = InitializationOptions.WithLifecycle(Lifecycle.Event.ON_CREATE)
 ): Lazy<Feature<Props, Msg>> =
     createVMLazy<Connector<Model, Msg, Props>, Model, Msg, Props>(
-        feature = { scope, model -> teaFeature(scope, model, featureParameters()) },
+        feature = { scope, model -> teaFeature(scope, model, featureParams()) },
         viewState = viewState,
         defaultArgs = defaultArgs,
         key = key,
@@ -88,15 +88,15 @@ fun <Model : Parcelable, Msg : Any, Props : Any, Deps> ComponentActivity.android
         initOptions = initOptions
     )
 
-internal fun <State : Parcelable, Msg : Any, Deps> teaFeature(
+internal fun <State : Parcelable, Msg : Any> teaFeature(
     featureScope: CoroutineScope,
     previousState: State?,
-    featureParameters: FeatureParameters<State, Msg, Deps>
+    featureParams: FeatureParams<State, Msg>
 ) = TeaFeature(
     previousState = previousState,
     featureScope = featureScope,
-    initFeature = featureParameters.init,
-    update = featureParameters.update,
+    initFeature = featureParams.init,
+    update = featureParams.update,
 )
 
 /** General method for creating a connector. */

@@ -63,8 +63,8 @@ private fun someViewState(context: Context): ViewState<Model, Props> = { model -
 
 ### Add to your Fragment/Activity
 ```kotlin
-class SomeFragment(val featureParameters: () -> SomeFeatureParams) : Fragment(R.layout.fragment_some) {
-    private val feature by androidConnectors(featureParameters, viewState = { someViewState(context) })
+class SomeFragment(featureParams: () -> SomeFeatureParams) : Fragment(R.layout.fragment_some) {
+    private val feature by androidConnectors(featureParams, viewState = { someViewState(context) })
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

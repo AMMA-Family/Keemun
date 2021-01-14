@@ -9,20 +9,17 @@ import family.amma.tea.Update
  * @see InitFeature
  * @see Update
  */
-data class FeatureParameters<State : Any, Msg : Any, Deps>(
-    val init: InitFeature<State, Msg, Deps>,
+data class FeatureParams<State : Any, Msg : Any>(
+    val init: InitFeature<State, Msg, *>,
     val update: Update<State, Msg>,
 )
 
-/** @see FeatureParameters */
-typealias FeatureParams<Model, Msg> = FeatureParameters<Model, Msg, Unit>
-
-/** @see FeatureParameters */
+/** @see FeatureParams */
 @Suppress("FunctionName")
 fun <State : Any, Msg : Any> FeatureParams(
     init: InitWithPrevious<State, Msg>,
     update: Update<State, Msg>
-) = FeatureParameters(
+) = FeatureParams(
     init = InitFeature(
         preEffect = {},
         init = { prev, _ -> init(prev) }

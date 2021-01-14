@@ -6,6 +6,6 @@ import family.amma.tea.feature.Binder
 import kotlinx.coroutines.CoroutineScope
 
 /** Android implementation of binding. */
-class AndroidBinder : Binder, ViewModel() {
+open class AndroidBinder : Binder, ViewModel() {
     override val scope: CoroutineScope = viewModelScope
 }
