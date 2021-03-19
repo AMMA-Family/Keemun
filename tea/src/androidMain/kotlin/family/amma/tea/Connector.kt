@@ -30,7 +30,7 @@ import kotlinx.coroutines.flow.mapLatest
  */
 class Connector<Model : Parcelable, Msg : Any, Props : Any>(
     createFeature: (CoroutineScope, Model?) -> Feature<Model, Msg>,
-    private val viewState: () -> ViewState<Model, Props>,
+    private val viewState: ViewState<Model, Props>,
     savedStateHandle: SavedStateHandle
 ) : ViewModel(), Feature<Props, Msg> {
     private val feature: Feature<Model, Msg>
@@ -40,7 +40,7 @@ class Connector<Model : Parcelable, Msg : Any, Props : Any>(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override val states: Flow<Props>
-        get() = feature.states.mapLatest(viewState()).flowOn(Dispatchers.Default)
+        get() = feature.states.mapLatest(viewState).flowOn(Dispatchers.Default)
 
     init {
         feature = createFeature(scope, savedStateHandle.get(MODEL_KEY))
@@ -60,9 +60,8 @@ class Connector<Model : Parcelable, Msg : Any, Props : Any>(
         owner: SavedStateRegistryOwner,
         defaultArgs: Bundle? = null,
         private val feature: (CoroutineScope, Model?) -> Feature<Model, Msg>,
-        private val viewState: () -> ViewState<Model, Props>,
+        private val viewState: ViewState<Model, Props>,
     ) : AbstractSavedStateViewModelFactory(owner, defaultArgs) {
-
         @Suppress(names = ["UNCHECKED_CAST"])
         override fun <T : ViewModel> create(key: String, modelClass: Class<T>, handle: SavedStateHandle): T =
             Connector(feature, viewState, handle) as T

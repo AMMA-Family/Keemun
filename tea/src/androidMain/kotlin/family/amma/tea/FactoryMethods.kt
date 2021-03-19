@@ -26,12 +26,12 @@ import kotlin.reflect.KClass
  * @see FeatureParams
  * @see InitializationOptions
  */
-fun <Model : Parcelable, Msg : Any, Props : Any> Fragment.androidConnectors(
-    featureParams: () -> FeatureParams<Model, Msg>,
-    viewState: () -> ViewState<Model, Props>,
+inline fun <reified Model : Parcelable, Msg : Any, Props : Any> Fragment.androidConnectors(
+    crossinline featureParams: () -> FeatureParams<Model, Msg>,
+    noinline viewState: ViewState<Model, Props>,
     defaultArgs: Bundle? = null,
-    key: String? = null,
-    storeProducer: () -> ViewModelStore = { viewModelStore },
+    key: String? = Model::class.simpleName,
+    noinline storeProducer: () -> ViewModelStore = { viewModelStore },
     initOptions: InitializationOptions = InitializationOptions.WithLifecycle(Lifecycle.Event.ON_CREATE)
 ): Lazy<Feature<Props, Msg>> =
     createVMLazy<Connector<Model, Msg, Props>, Model, Msg, Props>(
@@ -49,12 +49,12 @@ fun <Model : Parcelable, Msg : Any, Props : Any> Fragment.androidConnectors(
  * @see FeatureParams
  * @see InitializationOptions
  */
-fun <Model : Parcelable, Msg : Any, Props : Any> Fragment.sharedAndroidConnectors(
-    featureParams: () -> FeatureParams<Model, Msg>,
-    viewState: () -> ViewState<Model, Props>,
+inline fun <reified Model : Parcelable, Msg : Any, Props : Any> Fragment.sharedAndroidConnectors(
+    crossinline featureParams: () -> FeatureParams<Model, Msg>,
+    noinline viewState: ViewState<Model, Props>,
     defaultArgs: Bundle? = null,
-    key: String? = null,
-    storeProducer: () -> ViewModelStore = { requireActivity().viewModelStore },
+    key: String? = Model::class.simpleName,
+    noinline storeProducer: () -> ViewModelStore = { requireActivity().viewModelStore },
     initOptions: InitializationOptions = InitializationOptions.WithLifecycle(Lifecycle.Event.ON_CREATE)
 ): Lazy<Feature<Props, Msg>> =
     createVMLazy<Connector<Model, Msg, Props>, Model, Msg, Props>(
@@ -72,11 +72,11 @@ fun <Model : Parcelable, Msg : Any, Props : Any> Fragment.sharedAndroidConnector
  * @see FeatureParams
  * @see InitializationOptions
  */
-fun <Model : Parcelable, Msg : Any, Props : Any> ComponentActivity.androidConnectors(
-    featureParams: () -> FeatureParams<Model, Msg>,
-    viewState: () -> ViewState<Model, Props>,
+inline fun <reified Model : Parcelable, Msg : Any, Props : Any> ComponentActivity.androidConnectors(
+    crossinline featureParams: () -> FeatureParams<Model, Msg>,
+    noinline viewState: ViewState<Model, Props>,
     defaultArgs: Bundle? = null,
-    key: String? = null,
+    key: String? = Model::class.simpleName,
     initOptions: InitializationOptions = InitializationOptions.WithLifecycle(Lifecycle.Event.ON_CREATE)
 ): Lazy<Feature<Props, Msg>> =
     createVMLazy<Connector<Model, Msg, Props>, Model, Msg, Props>(
@@ -88,11 +88,11 @@ fun <Model : Parcelable, Msg : Any, Props : Any> ComponentActivity.androidConnec
         initOptions = initOptions
     )
 
-internal fun <State : Parcelable, Msg : Any> teaFeature(
+fun <State : Parcelable, Msg : Any> teaFeature(
     featureScope: CoroutineScope,
     previousState: State?,
     featureParams: FeatureParams<State, Msg>
-) = TeaFeature(
+): Feature<State, Msg> = TeaFeature(
     previousState = previousState,
     featureScope = featureScope,
     initFeature = featureParams.init,
@@ -102,7 +102,7 @@ internal fun <State : Parcelable, Msg : Any> teaFeature(
 /** General method for creating a connector. */
 inline fun <reified VM : ViewModel, Model : Parcelable, Msg : Any, Props : Any> SavedStateRegistryOwner.createVMLazy(
     noinline feature: (CoroutineScope, Model?) -> Feature<Model, Msg>,
-    noinline viewState: () -> ViewState<Model, Props>,
+    noinline viewState: ViewState<Model, Props>,
     noinline storeProducer: () -> ViewModelStore,
     key: String?,
     defaultArgs: Bundle?,
@@ -159,10 +159,7 @@ class VMLazy<VM : ViewModel>(
 }
 
 /** Applies [InitializationOptions] to [lazyObj]. */
-fun <VM : ViewModel> LifecycleOwner.withOptions(
-    initOptions: InitializationOptions,
-    lazyObj: Lazy<VM>
-): Lazy<VM> =
+fun <T> LifecycleOwner.withOptions(initOptions: InitializationOptions, lazyObj: Lazy<T>): Lazy<T> =
     when (initOptions) {
         InitializationOptions.Lazy -> lazyObj
         is InitializationOptions.WithLifecycle -> lazyObj.also {

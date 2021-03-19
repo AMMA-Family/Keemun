@@ -1,11 +1,11 @@
 package family.amma.tea
 
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import family.amma.tea.feature.Binder
-import kotlinx.coroutines.CoroutineScope
 
-/** Android implementation of binding. */
-open class AndroidBinder : Binder, ViewModel() {
-    override val scope: CoroutineScope = viewModelScope
-}
+fun <T : ViewModel> LifecycleOwner.binder(block: () -> T): Lazy<T> =
+    withOptions(
+        InitializationOptions.WithLifecycle(Lifecycle.Event.ON_CREATE),
+        lazy(LazyThreadSafetyMode.NONE, block)
+    )
