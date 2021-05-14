@@ -10,6 +10,10 @@ buildscript {
     }
 }
 
+plugins {
+    id("org.jetbrains.dokka") version "1.4.20"
+}
+
 allprojects {
     repositories {
         google()

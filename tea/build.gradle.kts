@@ -6,6 +6,8 @@ plugins {
     id("com.android.library")
     kotlin("multiplatform")
     id("maven-publish")
+    id("signing")
+    id("org.jetbrains.dokka")
 }
 
 kotlin {
@@ -82,12 +84,22 @@ android {
     testOptions.unitTests.isIncludeAndroidResources = true
 }
 
-/*
 val publicationGroupId: String = project.requireProperty(name = "publication.groupId")
 val publicationVersionName: String = project.requireProperty(name = "publication.versionName")
 
 group = publicationGroupId
 version = publicationVersionName
+
+extra["signing.keyId"] = project.localProperties().getProperty("publication.signing.keyId")
+extra["signing.password"] = project.localProperties().getProperty("publication.signing.password")
+extra["signing.secretKeyRingFile"] = "$rootDir/${project.localProperties().getProperty("publication.signing.secretKeyRingFileName")}"
+
+signing {
+    isRequired = true
+    sign(publishing.publications)
+}
+
+val javadocJar by tasks.registering(Jar::class) { archiveClassifier.set("javadoc") }
 
 publishing {
     configure(
@@ -98,4 +110,3 @@ publishing {
         publicationType = PublicationType.Mpp
     )
 }
-*/

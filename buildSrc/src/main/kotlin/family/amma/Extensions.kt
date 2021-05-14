@@ -3,6 +3,7 @@ import org.gradle.api.Project
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.kotlin.dsl.maven
+import org.gradle.kotlin.dsl.withType
 import java.io.File
 import java.util.Properties
 
@@ -49,12 +50,26 @@ fun PublishingExtension.configure(
 
         pom {
             name.set(groupId)
+            description.set(project.requireProperty("publication.description"))
+            url.set(project.requireProperty("publication.url"))
             licenses {
                 license {
-                    name.set("The Apache Software License, Version 2.0")
-                    url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
-                    distribution.set("repo")
+                    name.set(project.requireProperty("publication.license.name"))
+                    url.set(project.requireProperty("publication.license.url"))
                 }
+            }
+            developers {
+                developer {
+                    name.set(project.requireProperty("publication.developer.name"))
+                    email.set(project.requireProperty("publication.developer.email"))
+                    organization.set(project.requireProperty("publication.developer.email"))
+                    organizationUrl.set(project.requireProperty("publication.developer.email"))
+                }
+            }
+            scm {
+                connection.set(project.requireProperty("publication.scm.connection"))
+                developerConnection.set(project.requireProperty("publication.scm.developerConnection"))
+                url.set(project.requireProperty("publication.scm.url"))
             }
         }
     }
@@ -62,7 +77,10 @@ fun PublishingExtension.configure(
     when (publicationType) {
         PublicationType.Mpp -> {
             //TODO in kotlin 1.4.10 this line causes problems, the dependency does not sync.
-            //publications.withType<MavenPublication>().configureEach(MavenPublication::configure)
+            publications.withType<MavenPublication> {
+                configure()
+                artifact(project.tasks.named("javadocJar"))
+            }
         }
 
         PublicationType.Android ->
