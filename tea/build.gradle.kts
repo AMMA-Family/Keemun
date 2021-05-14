@@ -90,23 +90,93 @@ val publicationVersionName: String = project.requireProperty(name = "publication
 group = publicationGroupId
 version = publicationVersionName
 
-extra["signing.keyId"] = project.localProperties().getProperty("publication.signing.keyId")
-extra["signing.password"] = project.localProperties().getProperty("publication.signing.password")
-extra["signing.secretKeyRingFile"] = "$rootDir/${project.localProperties().getProperty("publication.signing.secretKeyRingFileName")}"
+val localProperties = project.localProperties()
+
+rootProject.extra["signing.keyId"] = localProperties.getProperty("publication.signing.keyId")
+rootProject.extra["signing.password"] = localProperties.getProperty("publication.signing.password")
+rootProject.extra["signing.secretKeyRingFile"] = "$rootDir/${localProperties.getProperty("publication.signing.secretKeyRingFileName")}"
 
 signing {
-    isRequired = true
     sign(publishing.publications)
 }
 
-val javadocJar by tasks.registering(Jar::class) { archiveClassifier.set("javadoc") }
+// Create javadocs with dokka and attach to maven publication
+tasks {
+    dokkaJavadoc {
+        outputDirectory.set(project.rootProject.file("$buildDir/dokka"))
+        dokkaSourceSets {
+            configureEach {
+                suppress.set(true)
+            }
+            val commonMain by getting {
+                suppress.set(false)
+                platform.set(org.jetbrains.dokka.Platform.jvm)
+            }
+        }
+    }
+}
+
+val javadocJar by tasks.registering(Jar::class) {
+    val dokkaHtml = tasks.named<org.jetbrains.dokka.gradle.DokkaTask>("dokkaHtml")
+    dependsOn(dokkaHtml)
+    archiveClassifier.set("javadoc")
+    from(dokkaHtml.get().outputDirectory)
+}
 
 publishing {
-    configure(
-        project = project,
-        groupId = publicationGroupId,
-        artifactId = project.requireProperty(name = "publication.artifactId"),
-        versionName = publicationVersionName,
-        publicationType = PublicationType.Mpp
-    )
+    repositories {
+        maven(url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/") {
+            /*setUrl(
+                if(project.version.let { it as String }.endsWith("-SNAPSHOT"))
+                    "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+                else
+                    "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+            )*/
+            name = "sonatype"
+
+            credentials {
+                username = localProperties.getProperty("publication.user.login")
+                password = localProperties.getProperty("publication.user.password")
+            }
+        }
+    }
+
+    publications.withType<MavenPublication>().all {
+        this.groupId = publicationGroupId
+        val artifactName: String = project.requireProperty(name = "publication.artifactId")
+        this.artifactId = if (name.contains("kotlinMultiplatform")) {
+            artifactName
+        } else {
+            "$artifactName-$name"
+        }
+        this.version = publicationVersionName
+
+        pom {
+            name.set(publicationGroupId)
+            description.set(project.requireProperty("publication.description"))
+            url.set(project.requireProperty("publication.url"))
+            licenses {
+                license {
+                    name.set(project.requireProperty("publication.license.name"))
+                    url.set(project.requireProperty("publication.license.url"))
+                }
+            }
+            developers {
+                developer {
+                    name.set(project.requireProperty("publication.developer.name"))
+                    email.set(project.requireProperty("publication.developer.email"))
+                    organization.set(project.requireProperty("publication.developer.email"))
+                    organizationUrl.set(project.requireProperty("publication.developer.email"))
+                }
+            }
+            scm {
+                connection.set(project.requireProperty("publication.scm.connection"))
+                developerConnection.set(project.requireProperty("publication.scm.developerConnection"))
+                url.set(project.requireProperty("publication.scm.url"))
+            }
+        }
+
+        // Stub javadoc.jar artifact
+        artifact(javadocJar.get())
+    }
 }
