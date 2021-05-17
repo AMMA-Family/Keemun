@@ -42,8 +42,8 @@ class TeaFeature<State : Any, Msg : Any, Deps>(
     private val update: Update<State, Msg>,
     featureScope: CoroutineScope
 ) : Feature<State, Msg>, CoroutineScope by featureScope {
-    private val messageSharedFlow = MutableSharedFlow<Msg>()
-    private val stateFlow: MutableStateFlow<State?> = MutableStateFlow(null)
+    private val messageSharedFlow = MutableSharedFlow<Msg>(replay = 10)
+    private val stateFlow = MutableStateFlow<State?>(null)
 
     override val states: Flow<State> get() = stateFlow.filterNotNull()
     override val messages: SharedFlow<Msg> get() = messageSharedFlow

@@ -97,14 +97,14 @@ extra["signing.secretKeyRingFile"] = "$rootDir/${localProperties.getProperty("pu
 
 publishing {
     repositories {
-        maven(url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/") {
-            /*setUrl(
+        maven {
+            name = "mavenCentral"
+            setUrl(
                 if(project.version.let { it as String }.endsWith("-SNAPSHOT"))
                     "https://s01.oss.sonatype.org/content/repositories/snapshots/"
                 else
                     "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
-            )*/
-            name = "mavenCentral"
+            )
 
             credentials {
                 username = localProperties.getProperty("publication.user.login")
@@ -133,7 +133,7 @@ publishing.publications.withType<MavenPublication>().all {
     this.version = publicationVersionName
 
     // Stub javadoc.jar artifact
-    artifact(javadocJar.get())
+    artifact(javadocJar)
 
     pom {
         name.set(publicationGroupId)
