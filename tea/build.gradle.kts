@@ -7,7 +7,6 @@ plugins {
     kotlin("multiplatform")
     id("maven-publish")
     id("signing")
-    id("org.jetbrains.dokka")
 }
 
 kotlin {
@@ -92,36 +91,9 @@ version = publicationVersionName
 
 val localProperties = project.localProperties()
 
-rootProject.extra["signing.keyId"] = localProperties.getProperty("publication.signing.keyId")
-rootProject.extra["signing.password"] = localProperties.getProperty("publication.signing.password")
-rootProject.extra["signing.secretKeyRingFile"] = "$rootDir/${localProperties.getProperty("publication.signing.secretKeyRingFileName")}"
-
-signing {
-    sign(publishing.publications)
-}
-
-// Create javadocs with dokka and attach to maven publication
-tasks {
-    dokkaJavadoc {
-        outputDirectory.set(project.rootProject.file("$buildDir/dokka"))
-        dokkaSourceSets {
-            configureEach {
-                suppress.set(true)
-            }
-            val commonMain by getting {
-                suppress.set(false)
-                platform.set(org.jetbrains.dokka.Platform.jvm)
-            }
-        }
-    }
-}
-
-val javadocJar by tasks.registering(Jar::class) {
-    val dokkaHtml = tasks.named<org.jetbrains.dokka.gradle.DokkaTask>("dokkaHtml")
-    dependsOn(dokkaHtml)
-    archiveClassifier.set("javadoc")
-    from(dokkaHtml.get().outputDirectory)
-}
+extra["signing.keyId"] = localProperties.getProperty("publication.signing.keyId")
+extra["signing.password"] = localProperties.getProperty("publication.signing.password")
+extra["signing.secretKeyRingFile"] = "$rootDir/${localProperties.getProperty("publication.signing.secretKeyRingFileName")}"
 
 publishing {
     repositories {
@@ -132,7 +104,7 @@ publishing {
                 else
                     "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
             )*/
-            name = "sonatype"
+            name = "mavenCentral"
 
             credentials {
                 username = localProperties.getProperty("publication.user.login")
@@ -140,43 +112,51 @@ publishing {
             }
         }
     }
+}
 
-    publications.withType<MavenPublication>().all {
-        this.groupId = publicationGroupId
-        val artifactName: String = project.requireProperty(name = "publication.artifactId")
-        this.artifactId = if (name.contains("kotlinMultiplatform")) {
-            artifactName
-        } else {
-            "$artifactName-$name"
-        }
-        this.version = publicationVersionName
+signing {
+    sign(publishing.publications)
+}
 
-        pom {
-            name.set(publicationGroupId)
-            description.set(project.requireProperty("publication.description"))
-            url.set(project.requireProperty("publication.url"))
-            licenses {
-                license {
-                    name.set(project.requireProperty("publication.license.name"))
-                    url.set(project.requireProperty("publication.license.url"))
-                }
-            }
-            developers {
-                developer {
-                    name.set(project.requireProperty("publication.developer.name"))
-                    email.set(project.requireProperty("publication.developer.email"))
-                    organization.set(project.requireProperty("publication.developer.email"))
-                    organizationUrl.set(project.requireProperty("publication.developer.email"))
-                }
-            }
-            scm {
-                connection.set(project.requireProperty("publication.scm.connection"))
-                developerConnection.set(project.requireProperty("publication.scm.developerConnection"))
-                url.set(project.requireProperty("publication.scm.url"))
+val javadocJar by tasks.registering(Jar::class) {
+    archiveClassifier.set("javadoc")
+}
+
+publishing.publications.withType<MavenPublication>().all {
+    this.groupId = publicationGroupId
+    val artifactName: String = project.requireProperty(name = "publication.artifactId")
+    this.artifactId = if (name.contains("kotlinMultiplatform")) {
+        artifactName
+    } else {
+        "$artifactName-$name"
+    }
+    this.version = publicationVersionName
+
+    // Stub javadoc.jar artifact
+    artifact(javadocJar.get())
+
+    pom {
+        name.set(publicationGroupId)
+        description.set(project.requireProperty("publication.description"))
+        url.set(project.requireProperty("publication.url"))
+        licenses {
+            license {
+                name.set(project.requireProperty("publication.license.name"))
+                url.set(project.requireProperty("publication.license.url"))
             }
         }
-
-        // Stub javadoc.jar artifact
-        artifact(javadocJar.get())
+        developers {
+            developer {
+                name.set(project.requireProperty("publication.developer.name"))
+                email.set(project.requireProperty("publication.developer.email"))
+                organization.set(project.requireProperty("publication.developer.email"))
+                organizationUrl.set(project.requireProperty("publication.developer.email"))
+            }
+        }
+        scm {
+            connection.set(project.requireProperty("publication.scm.connection"))
+            developerConnection.set(project.requireProperty("publication.scm.developerConnection"))
+            url.set(project.requireProperty("publication.scm.url"))
+        }
     }
 }
