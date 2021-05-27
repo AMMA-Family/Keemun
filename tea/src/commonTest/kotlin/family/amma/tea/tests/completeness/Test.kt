@@ -1,10 +1,11 @@
 package family.amma.tea.tests.completeness
 
+import family.amma.tea.collectAsync
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import family.amma.tea.runTest
-import family.amma.tea.notTakeAfter
+import kotlinx.coroutines.delay
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -21,12 +22,10 @@ class CompletenessTest {
         val scope = CoroutineScope(Dispatchers.Default)
         val feature = feature(scope, dispatchCount)
 
-        val lastModel = feature
-            .states
-            .notTakeAfter(timeMillis = 300, expected = expected)
-            .last()
+        val modelsListDef = feature.states.collectAsync(scope)
+        delay(300)
         try {
-            assertEquals(actual = lastModel, expected = expected)
+            assertEquals(actual = modelsListDef.await().last(), expected = expected)
         } finally {
             scope.cancel()
         }

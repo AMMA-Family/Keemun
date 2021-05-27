@@ -1,18 +1,17 @@
 package family.amma.tea
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.takeWhile
-import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.launch
 
 /**
- * Collects all the elements within [timeMillis] milliseconds, and then returns the accumulated elements as a list.
+ * Collects all the elements asynchronously.
  */
-suspend fun <T> Flow<T>.notTakeAfter(timeMillis: Long, expected: T): List<T> {
+fun <T> Flow<T>.collectAsync(coroutineScope: CoroutineScope): Deferred<List<T>> {
     val result = ArrayList<T>()
-    withTimeoutOrNull(timeMillis) {
-        onEach { result.add(it) }.takeWhile { it != expected }.collect()
-    }
-    return result
+    coroutineScope.launch { collect { result.add(it) } }
+    return coroutineScope.async { result }
 }
