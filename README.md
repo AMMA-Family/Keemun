@@ -1,4 +1,9 @@
 # multiplatform-tea-architecture
+## Introduction
+Add the library to your `build.gradle.kts` file.
+```kotlin
+implementation("family.amma:tea:2.2.1")
+```
 
 ## Multiplatform part
 
@@ -62,6 +67,7 @@ private fun someViewState(context: Context): ViewState<Model, Props> = { model -
 ```
 
 ### Add to your Fragment/Activity
+
 ```kotlin
 class SomeFragment(featureParams: () -> SomeFeatureParams) : Fragment(R.layout.fragment_some) {
     private val feature by androidConnectors(featureParams, viewState = { someViewState(context) })
@@ -78,6 +84,7 @@ class SomeFragment(featureParams: () -> SomeFeatureParams) : Fragment(R.layout.f
 ```
 
 ### Send messages to change state
+
 ```kotlin
 feature.dispatch(Msg.Foo)
 feature dispatch Msg.Bar
