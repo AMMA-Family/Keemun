@@ -1,5 +1,4 @@
-# multiplatform-tea-architecture
-## Introduction
+# Multiplatform TEA Architecture
 Add the library to your `build.gradle.kts` file.
 ```kotlin
 implementation("family.amma:tea:2.2.3")
