@@ -103,7 +103,7 @@ publishing {
                 if(project.version.let { it as String }.endsWith("-SNAPSHOT"))
                     "https://s01.oss.sonatype.org/content/repositories/snapshots/"
                 else
-                    "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+                    "https://s01.oss.sonatype.org/content/repositories/releases/"
             )
 
             credentials {

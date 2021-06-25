@@ -2,7 +2,7 @@
 ## Introduction
 Add the library to your `build.gradle.kts` file.
 ```kotlin
-implementation("family.amma:tea:2.2.1")
+implementation("family.amma:tea:2.2.3")
 ```
 
 ## Multiplatform part
@@ -59,7 +59,7 @@ class ModelUpdater : Update<Model, Msg> {
 
 ```kotlin
 // ViewState<Model, Props> = suspend (Model) -> Props 
-private fun someViewState(context: Context): ViewState<Model, Props> = { model ->
+private fun someViewState(getContext: () -> Context): ViewState<Model, Props> = { model ->
     Props(
         localizedAge = model.user?.age?.let { context.getString(R.string.age, it) }
     )
@@ -70,7 +70,7 @@ private fun someViewState(context: Context): ViewState<Model, Props> = { model -
 
 ```kotlin
 class SomeFragment(featureParams: () -> SomeFeatureParams) : Fragment(R.layout.fragment_some) {
-    private val feature by androidConnectors(featureParams, viewState = { someViewState(context) })
+    private val feature by androidConnectors(featureParams, viewState = someViewState(::context))
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

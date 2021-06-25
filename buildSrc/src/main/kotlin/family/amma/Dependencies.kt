@@ -1,6 +1,6 @@
 @file:JvmMultifileClass
 
-private const val kotlinVersion = "1.5.10"
+private const val kotlinVersion = "1.5.20"
 
 object BuildPlugin {
     const val gradle = "com.android.tools.build:gradle:4.2.1"
@@ -9,7 +9,7 @@ object BuildPlugin {
 
 object Dependency {
     object AndroidX {
-        const val fragment = "androidx.fragment:fragment-ktx:1.3.4"
+        const val fragment = "androidx.fragment:fragment-ktx:1.3.5"
     }
 
     object Kotlin {
