@@ -1,7 +1,7 @@
 # Multiplatform TEA Architecture
 Add the library to your `build.gradle.kts` file.
 ```kotlin
-implementation("family.amma:tea:2.2.3")
+implementation("family.amma:tea:2.2.4")
 ```
 
 ## Multiplatform part
@@ -85,6 +85,6 @@ class SomeFragment(featureParams: () -> SomeFeatureParams) : Fragment(R.layout.f
 ### Send messages to change state
 
 ```kotlin
-feature.dispatch(Msg.Foo)
-feature dispatch Msg.Bar
+feature dispatch Msg.Foo
+feature syncDispatch Msg.Bar
 ```

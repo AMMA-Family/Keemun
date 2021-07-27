@@ -1,21 +1,21 @@
 @file:JvmMultifileClass
 
-private const val kotlinVersion = "1.5.20"
+private const val kotlinVersion = "1.5.21"
 
 object BuildPlugin {
-    const val gradle = "com.android.tools.build:gradle:4.2.1"
+    const val gradle = "com.android.tools.build:gradle:4.2.2"
     const val kotlin = "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
 }
 
 object Dependency {
     object AndroidX {
-        const val fragment = "androidx.fragment:fragment-ktx:1.3.5"
+        const val fragment = "androidx.fragment:fragment-ktx:1.3.6"
     }
 
     object Kotlin {
         object X {
             object Coroutines {
-                private const val version = "1.5.0"
+                private const val version = "1.5.1"
 
                 private const val mainPath = "org.jetbrains.kotlinx:kotlinx-coroutines"
                 const val core = "$mainPath-core:$version"
