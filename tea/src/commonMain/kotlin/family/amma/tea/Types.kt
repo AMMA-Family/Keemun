@@ -41,6 +41,6 @@ typealias Update<State, Msg, Effect> = (msg: Msg, state: State) -> Pair<State, S
 typealias ViewState<Model, Props> = suspend (model: Model) -> Props
 
 /**
- * Handling `eff` and `dispatch` messages.
+ * Handling `effect` and `dispatch` messages.
  */
-typealias EffectHandler<Effect, Msg> = suspend (eff: Effect, dispatch: Dispatch<Msg>) -> Unit
+typealias EffectHandler<Effect, Msg> = suspend CoroutineScope.(effect: Effect, dispatch: Dispatch<Msg>) -> Any?

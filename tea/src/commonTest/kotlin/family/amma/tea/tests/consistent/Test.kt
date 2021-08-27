@@ -9,13 +9,12 @@ import kotlin.test.assertEquals
 class ConsistentTest {
     @Test
     fun testUpdater1() {
+        val userId = 101
         val defaultModel = ConsistentModel(progress = false, loadedUser = null)
-        val msg = ConsistentMsg.LoadUserById(id = 101)
-        val (model, _) = consistentUpdate(msg, defaultModel)
-        assertEquals(
-            actual = model,
-            expected = ConsistentModel(progress = true, loadedUser = null)
-        )
+        val msg = ConsistentMsg.LoadUserById(id = userId)
+        val (model, effect) = consistentUpdate(msg, defaultModel)
+        assertEquals(actual = model, expected = ConsistentModel(progress = true, loadedUser = null))
+        assertEquals(actual = effect, expected = setOf(ConsistentEff.LoadUser(userId)))
     }
 
     @Test
@@ -23,11 +22,9 @@ class ConsistentTest {
         val defaultModel = ConsistentModel(progress = true, loadedUser = null)
         val user = User(id = 101)
         val msg = ConsistentMsg.UserWasLoaded(user)
-        val (model, _) = consistentUpdate(msg, defaultModel)
-        assertEquals(
-            actual = model,
-            expected = ConsistentModel(progress = false, loadedUser = user)
-        )
+        val (model, effect) = consistentUpdate(msg, defaultModel)
+        assertEquals(actual = model, expected = ConsistentModel(progress = false, loadedUser = user))
+        assertEquals(actual = effect, expected = emptySet())
     }
 
     @Test
