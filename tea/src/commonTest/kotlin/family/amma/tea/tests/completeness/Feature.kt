@@ -14,32 +14,41 @@ sealed class CompletenessMsg {
     object IncFlow3 : CompletenessMsg()
 }
 
+sealed class CompletenessEff {
+    data class StartIncFlow1(val repeatCount: Int) : CompletenessEff()
+    data class StartIncFlow2(val repeatCount: Int) : CompletenessEff()
+    data class StartIncFlow3(val repeatCount: Int) : CompletenessEff()
+}
+
 fun feature(scope: CoroutineScope, repeatCount: Int) = TeaFeature(
     previousState = null,
     featureScope = scope,
-    initFeature = InitFeature(initWithPrevious(repeatCount)),
+    initFeature = init(repeatCount),
     update = update,
+    effectHandler = effectHandler
 )
 
-private fun initWithPrevious(repeatCount: Int): InitWithPrevious<CompletenessModel, CompletenessMsg> = { previous ->
+private fun init(repeatCount: Int) = InitFeature<CompletenessModel, CompletenessEff> { previous ->
     val model = previous ?: CompletenessModel(flow1 = 0, flow2 = 0, flow3 = 0)
-    model to batch(
-        effect { dispatch ->
-            (1..repeatCount).asFlow().collect { dispatch(CompletenessMsg.IncFlow1) }
-        },
-        effect { dispatch ->
-            (1..repeatCount).asFlow().collect { dispatch(CompletenessMsg.IncFlow2) }
-        },
-        effect { dispatch ->
-            (1..repeatCount).asFlow().collect { dispatch(CompletenessMsg.IncFlow3) }
-        }
+    model to setOf(
+        CompletenessEff.StartIncFlow1(repeatCount),
+        CompletenessEff.StartIncFlow2(repeatCount),
+        CompletenessEff.StartIncFlow3(repeatCount)
     )
 }
 
-private val update: Update<CompletenessModel, CompletenessMsg> = { msg, model ->
+private val update: Update<CompletenessModel, CompletenessMsg, CompletenessEff> = { msg, model ->
     when (msg) {
-        CompletenessMsg.IncFlow1 -> model.copy(flow1 = model.flow1 + 1) to none()
-        CompletenessMsg.IncFlow2 -> model.copy(flow2 = model.flow2 + 1) to none()
-        CompletenessMsg.IncFlow3 -> model.copy(flow3 = model.flow3 + 1) to none()
+        CompletenessMsg.IncFlow1 -> model.copy(flow1 = model.flow1 + 1) to emptySet()
+        CompletenessMsg.IncFlow2 -> model.copy(flow2 = model.flow2 + 1) to emptySet()
+        CompletenessMsg.IncFlow3 -> model.copy(flow3 = model.flow3 + 1) to emptySet()
+    }
+}
+
+private val effectHandler: EffectHandler<CompletenessEff, CompletenessMsg> = { eff, dispatch ->
+    when (eff) {
+        is CompletenessEff.StartIncFlow1 -> (1..eff.repeatCount).asFlow().collect { dispatch(CompletenessMsg.IncFlow1) }
+        is CompletenessEff.StartIncFlow2 -> (1..eff.repeatCount).asFlow().collect { dispatch(CompletenessMsg.IncFlow2) }
+        is CompletenessEff.StartIncFlow3 -> (1..eff.repeatCount).asFlow().collect { dispatch(CompletenessMsg.IncFlow3) }
     }
 }

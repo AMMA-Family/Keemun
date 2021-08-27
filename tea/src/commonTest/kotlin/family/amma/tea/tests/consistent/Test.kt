@@ -41,9 +41,7 @@ class ConsistentTest {
             ConsistentModel(progress = true, loadedUser = null),
             ConsistentModel(progress = false, loadedUser = User(id = userId))
         )
-        scope.launch {
-            feature.dispatch(ConsistentMsg.LoadUserById(id = userId))
-        }
+        feature.syncDispatch(ConsistentMsg.LoadUserById(id = userId))
         delay(300)
         try {
             assertEquals(actual = modelsListDef.await(), expected = expected)

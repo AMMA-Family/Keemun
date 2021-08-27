@@ -1,10 +1,9 @@
 package family.amma.tea.feature
 
+import family.amma.tea.EffectHandler
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import family.amma.tea.Effect
 import family.amma.tea.InitFeature
-import family.amma.tea.InitWithPrevious
 import family.amma.tea.Update
 
 /**
@@ -32,18 +31,20 @@ internal val effectContext: CoroutineDispatcher get() = Dispatchers.Default
 /**
  * [State] - common state, [Msg] - messages with which we will transform the [State].
  * @param previousState Previous state. Not null if the process was killed by the system and restored to its previous state.
- * @param initFeature Lambda [InitWithPrevious], which creates default state and default effect.
+ * @param initFeature Lambda [InitFeature], which creates default state and default effect.
  * @param update Lambda [Update], in which we respond to messages and update the state.
+ * @param effectHandler Lambda [EffectHandler], in which we implement effects and run impure functions.
  * @param featureScope The main scope on which all coroutines will be launched.
  */
-class TeaFeature<State : Any, Msg : Any, Deps>(
+class TeaFeature<State : Any, Msg : Any, Eff : Any, Deps>(
     previousState: State?,
-    initFeature: InitFeature<State, Msg, Deps>,
-    private val update: Update<State, Msg>,
+    initFeature: InitFeature<State, Eff, Deps>,
+    private val update: Update<State, Msg, Eff>,
+    private val effectHandler: EffectHandler<Eff, Msg>,
     featureScope: CoroutineScope
 ) : Feature<State, Msg>, CoroutineScope by featureScope {
     private val messageSharedFlow = MutableSharedFlow<Msg>(replay = 10)
-    private val stateFlow = MutableStateFlow<State?>(null)
+    private val stateFlow = MutableStateFlow<State?>(value = null)
 
     override val states: Flow<State> get() = stateFlow.filterNotNull()
     override val messages: SharedFlow<Msg> get() = messageSharedFlow
@@ -52,21 +53,21 @@ class TeaFeature<State : Any, Msg : Any, Deps>(
     init {
         val (preEffect, init) = initFeature
         launch(effectContext) {
-            val (defaultState, startEffect) = init(previousState, preEffect())
+            val (defaultState, startEffects) = init(previousState, preEffect())
             stateFlow.value = defaultState
-            observeMessages(defaultState, startEffect)
+            observeMessages(defaultState, startEffects)
         }
     }
 
-    private suspend fun observeMessages(defaultState: State, startEffect: Effect<Msg>?) {
+    private suspend fun observeMessages(defaultState: State, startEffects: Set<Eff>) {
         var currentState = defaultState
         messages
-            .onSubscription { startEffect?.let(::schedule) }
+            .onSubscription { schedule(startEffects) }
             .collect { msg ->
-                val (newState, effect) = update(msg, currentState)
+                val (newState, effects) = update(msg, currentState)
                 currentState = newState
                 stateFlow.value = newState
-                effect?.let(::schedule)
+                schedule(effects)
             }
     }
 
@@ -78,6 +79,7 @@ class TeaFeature<State : Any, Msg : Any, Deps>(
         messageSharedFlow.emit(msg)
     }
 
-    private fun schedule(effect: Effect<Msg>) =
-        launch(effectContext) { effect(::syncDispatch) }
+    private fun schedule(effects: Set<Eff>) {
+        for (effect in effects) launch(effectContext) { effectHandler(effect, ::syncDispatch) }
+    }
 }

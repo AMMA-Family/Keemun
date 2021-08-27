@@ -55,7 +55,7 @@ kotlin {
         }
 
         all {
-            languageSettings.useExperimentalAnnotation("kotlin.RequiresOptIn")
+            languageSettings.optIn("kotlin.RequiresOptIn")
         }
     }
 }
@@ -67,14 +67,14 @@ tasks.withType<KotlinCompile> {
 }
 
 android {
-    compileSdkVersion(AndroidProject.compileSdkVersion)
+    compileSdk = AndroidProject.compileSdkVersion
     defaultConfig {
-        minSdkVersion(AndroidProject.minSdkVersion)
-        targetSdkVersion(AndroidProject.targetSdkVersion)
+        minSdk = AndroidProject.minSdkVersion
+        targetSdk = AndroidProject.targetSdkVersion
     }
 
     sourceSets {
-        val main by getting {
+        named("main") {
             manifest.srcFile("src/androidMain/AndroidManifest.xml")
             java.srcDirs("src/androidMain/kotlin")
         }

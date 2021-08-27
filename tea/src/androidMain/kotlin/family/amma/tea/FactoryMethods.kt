@@ -26,8 +26,8 @@ import kotlin.reflect.KClass
  * @see FeatureParams
  * @see InitializationOptions
  */
-inline fun <reified Model : Parcelable, Msg : Any, Props : Any> Fragment.androidConnectors(
-    crossinline featureParams: () -> FeatureParams<Model, Msg>,
+inline fun <reified Model : Parcelable, Msg : Any, Props : Any, Eff : Any> Fragment.androidConnectors(
+    crossinline featureParams: () -> FeatureParams<Model, Msg, Eff>,
     noinline viewState: ViewState<Model, Props>,
     defaultArgs: Bundle? = null,
     key: String? = Model::class.simpleName,
@@ -49,8 +49,8 @@ inline fun <reified Model : Parcelable, Msg : Any, Props : Any> Fragment.android
  * @see FeatureParams
  * @see InitializationOptions
  */
-inline fun <reified Model : Parcelable, Msg : Any, Props : Any> Fragment.sharedAndroidConnectors(
-    crossinline featureParams: () -> FeatureParams<Model, Msg>,
+inline fun <reified Model : Parcelable, Msg : Any, Props : Any, Eff : Any> Fragment.sharedAndroidConnectors(
+    crossinline featureParams: () -> FeatureParams<Model, Msg, Eff>,
     noinline viewState: ViewState<Model, Props>,
     defaultArgs: Bundle? = null,
     key: String? = Model::class.simpleName,
@@ -72,8 +72,8 @@ inline fun <reified Model : Parcelable, Msg : Any, Props : Any> Fragment.sharedA
  * @see FeatureParams
  * @see InitializationOptions
  */
-inline fun <reified Model : Parcelable, Msg : Any, Props : Any> ComponentActivity.androidConnectors(
-    crossinline featureParams: () -> FeatureParams<Model, Msg>,
+inline fun <reified Model : Parcelable, Msg : Any, Props : Any, Eff : Any> ComponentActivity.androidConnectors(
+    crossinline featureParams: () -> FeatureParams<Model, Msg, Eff>,
     noinline viewState: ViewState<Model, Props>,
     defaultArgs: Bundle? = null,
     key: String? = Model::class.simpleName,
@@ -88,15 +88,16 @@ inline fun <reified Model : Parcelable, Msg : Any, Props : Any> ComponentActivit
         initOptions = initOptions
     )
 
-fun <State : Parcelable, Msg : Any> teaFeature(
+fun <State : Parcelable, Msg : Any, Eff : Any> teaFeature(
     featureScope: CoroutineScope,
     previousState: State?,
-    featureParams: FeatureParams<State, Msg>
+    featureParams: FeatureParams<State, Msg, Eff>
 ): Feature<State, Msg> = TeaFeature(
     previousState = previousState,
     featureScope = featureScope,
     initFeature = featureParams.init,
     update = featureParams.update,
+    effectHandler = featureParams.effectHandler
 )
 
 /** General method for creating a connector. */
