@@ -26,8 +26,8 @@ import kotlin.reflect.KClass
  * @see FeatureParams
  * @see InitializationOptions
  */
-inline fun <reified Model : Parcelable, Msg : Any, Props : Any, Eff : Any> Fragment.androidConnectors(
-    crossinline featureParams: () -> FeatureParams<Model, Msg, Eff>,
+inline fun <reified Model : Parcelable, Msg : Any, Props : Any, Effect : Any> Fragment.androidConnectors(
+    crossinline featureParams: () -> FeatureParams<Model, Msg, Effect>,
     noinline viewState: ViewState<Model, Props>,
     defaultArgs: Bundle? = null,
     key: String? = Model::class.simpleName,
@@ -49,8 +49,8 @@ inline fun <reified Model : Parcelable, Msg : Any, Props : Any, Eff : Any> Fragm
  * @see FeatureParams
  * @see InitializationOptions
  */
-inline fun <reified Model : Parcelable, Msg : Any, Props : Any, Eff : Any> Fragment.sharedAndroidConnectors(
-    crossinline featureParams: () -> FeatureParams<Model, Msg, Eff>,
+inline fun <reified Model : Parcelable, Msg : Any, Props : Any, Effect : Any> Fragment.sharedAndroidConnectors(
+    crossinline featureParams: () -> FeatureParams<Model, Msg, Effect>,
     noinline viewState: ViewState<Model, Props>,
     defaultArgs: Bundle? = null,
     key: String? = Model::class.simpleName,
@@ -72,8 +72,8 @@ inline fun <reified Model : Parcelable, Msg : Any, Props : Any, Eff : Any> Fragm
  * @see FeatureParams
  * @see InitializationOptions
  */
-inline fun <reified Model : Parcelable, Msg : Any, Props : Any, Eff : Any> ComponentActivity.androidConnectors(
-    crossinline featureParams: () -> FeatureParams<Model, Msg, Eff>,
+inline fun <reified Model : Parcelable, Msg : Any, Props : Any, Effect : Any> ComponentActivity.androidConnectors(
+    crossinline featureParams: () -> FeatureParams<Model, Msg, Effect>,
     noinline viewState: ViewState<Model, Props>,
     defaultArgs: Bundle? = null,
     key: String? = Model::class.simpleName,
@@ -88,10 +88,10 @@ inline fun <reified Model : Parcelable, Msg : Any, Props : Any, Eff : Any> Compo
         initOptions = initOptions
     )
 
-fun <State : Parcelable, Msg : Any, Eff : Any> teaFeature(
+fun <State : Parcelable, Msg : Any, Effect : Any> teaFeature(
     featureScope: CoroutineScope,
     previousState: State?,
-    featureParams: FeatureParams<State, Msg, Eff>
+    featureParams: FeatureParams<State, Msg, Effect>
 ): Feature<State, Msg> = TeaFeature(
     previousState = previousState,
     featureScope = featureScope,

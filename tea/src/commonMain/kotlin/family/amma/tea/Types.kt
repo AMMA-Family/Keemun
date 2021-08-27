@@ -10,16 +10,16 @@ import kotlinx.coroutines.CoroutineScope
  *
  * If the system is being restored after the death of the process and the previous state was saved, then `previous != null`.
  */
-data class InitFeature<State, Eff, Deps>(
+data class InitFeature<State, Effect, Deps>(
     val preEffect: suspend CoroutineScope.() -> Deps,
-    val init: (previous: State?, Deps) -> Pair<State, Set<Eff>>
+    val init: (previous: State?, Deps) -> Pair<State, Set<Effect>>
 )
 
 /** Create [InitFeature] without pre-effect. */
 @Suppress("FunctionName")
-inline fun <State, Eff> InitFeature(
-    crossinline withoutPreEffect: (previous: State?) -> Pair<State, Set<Eff>>
-): InitFeature<State, Eff, Unit> =
+inline fun <State, Effect> InitFeature(
+    crossinline withoutPreEffect: (previous: State?) -> Pair<State, Set<Effect>>
+): InitFeature<State, Effect, Unit> =
     InitFeature(
         preEffect = {},
         init = { previous: State?, _ -> withoutPreEffect(previous) }
@@ -33,7 +33,7 @@ typealias Dispatch<Msg> = suspend (msg: Msg) -> Unit
 /**
  * Creates a next state and side-effects from a message and current state.
  */
-typealias Update<State, Msg, Eff> = (msg: Msg, state: State) -> Pair<State, Set<Eff>>
+typealias Update<State, Msg, Effect> = (msg: Msg, state: State) -> Pair<State, Set<Effect>>
 
 /**
  * Creates view properties from the current state.
@@ -43,4 +43,4 @@ typealias ViewState<Model, Props> = suspend (model: Model) -> Props
 /**
  * Handling `eff` and `dispatch` messages.
  */
-typealias EffectHandler<Eff, Msg> = suspend (eff: Eff, dispatch: Dispatch<Msg>) -> Unit
+typealias EffectHandler<Effect, Msg> = suspend (eff: Effect, dispatch: Dispatch<Msg>) -> Unit

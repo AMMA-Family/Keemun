@@ -3,7 +3,7 @@ package family.amma.tea
 /**
  * [Update] builder function.
  */
-fun <State : Any, Msg : Any, Eff : Any> update(block: Update<State, Msg, Eff>): Update<State, Msg, Eff> = block
+fun <State : Any, Msg : Any, Effect : Any> update(block: Update<State, Msg, Effect>): Update<State, Msg, Effect> = block
 
 /**
  * [ViewState] builder function.

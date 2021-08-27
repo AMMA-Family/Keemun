@@ -10,8 +10,8 @@ import family.amma.tea.Update
  * @see Update
  * @see EffectHandler
  */
-data class FeatureParams<State : Any, Msg : Any, Eff : Any>(
-    val init: InitFeature<State, Eff, *>,
-    val update: Update<State, Msg, Eff>,
-    val effectHandler: EffectHandler<Eff, Msg>
+data class FeatureParams<State : Any, Msg : Any, Effect : Any>(
+    val init: InitFeature<State, Effect, *>,
+    val update: Update<State, Msg, Effect>,
+    val effectHandler: EffectHandler<Effect, Msg>
 )

@@ -36,11 +36,11 @@ internal val effectContext: CoroutineDispatcher get() = Dispatchers.Default
  * @param effectHandler Lambda [EffectHandler], in which we implement effects and run impure functions.
  * @param featureScope The main scope on which all coroutines will be launched.
  */
-class TeaFeature<State : Any, Msg : Any, Eff : Any, Deps>(
+class TeaFeature<State : Any, Msg : Any, Effect : Any, Deps>(
     previousState: State?,
-    initFeature: InitFeature<State, Eff, Deps>,
-    private val update: Update<State, Msg, Eff>,
-    private val effectHandler: EffectHandler<Eff, Msg>,
+    initFeature: InitFeature<State, Effect, Deps>,
+    private val update: Update<State, Msg, Effect>,
+    private val effectHandler: EffectHandler<Effect, Msg>,
     featureScope: CoroutineScope
 ) : Feature<State, Msg>, CoroutineScope by featureScope {
     private val messageSharedFlow = MutableSharedFlow<Msg>(replay = 10)
@@ -59,7 +59,7 @@ class TeaFeature<State : Any, Msg : Any, Eff : Any, Deps>(
         }
     }
 
-    private suspend fun observeMessages(defaultState: State, startEffects: Set<Eff>) {
+    private suspend fun observeMessages(defaultState: State, startEffects: Set<Effect>) {
         var currentState = defaultState
         messages
             .onSubscription { schedule(startEffects) }
@@ -79,7 +79,7 @@ class TeaFeature<State : Any, Msg : Any, Eff : Any, Deps>(
         messageSharedFlow.emit(msg)
     }
 
-    private fun schedule(effects: Set<Eff>) {
+    private fun schedule(effects: Set<Effect>) {
         for (effect in effects) launch(effectContext) { effectHandler(effect, ::syncDispatch) }
     }
 }
