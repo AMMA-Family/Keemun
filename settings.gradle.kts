@@ -1,3 +1,3 @@
-rootProject.name = "Mutliplatform TEA Architecture"
+rootProject.name = "Keemun"
 
 include(":keemun")
