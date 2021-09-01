@@ -1,8 +1,14 @@
-# Multiplatform TEA Architecture
+# Keemun
 Add the library to your `build.gradle.kts` file.
+```kotlin
+implementation("family.amma:keemun:1.0.0")
+```
+
+If you want to use old version
 ```kotlin
 implementation("family.amma:tea:2.2.4")
 ```
+
 
 ## Multiplatform part
 
@@ -24,33 +30,44 @@ data class Props(
 sealed class Msg {
     data class UserWasLoaded(val user: User) : Msg()
 }
+
+sealed class Effect {
+    object LoadUser : Effect()
+}
 ```
 
 ### An example of creating `FeatureParams`:
 
-```kotlin
-typealias SomeFeatureParams = FeatureParams<Model, Msg>
 
-internal fun someFeatureParams(repo: UserRepository): SomeFeatureParams =
+```kotlin
+typealias SomeFeatureParams = FeatureParams<Model, Msg, Effect>
+typealias SomeFeatureEffectHandler = EffectHandler<Effect, Msg>
+
+internal fun someFeatureParams(effectHandler: SomeFeatureEffectHandler): SomeFeatureParams =
     FeatureParams(
-        init = init(repo),
-        update = ModelUpdater(),
+        init = init,
+        update = modelUpdater,
+        effectHandler = effectHandler
     )
-    
-private fun init(repo: UserRepository): InitWithPrevious<Model, Msg> = { previous: Model? ->
-    (previous ?: Model(
-        user = null
-    )) to effect{ dispatch ->
-        val user = repo.loadUser()
-        dispatch(Msg.UserWasLoaded(user))
-    }   
+
+val init = InitFeature<Model, Effect> { previous ->
+    val model = previous ?: Model(user = null)
+    model to setOf(Effect.LoadUser)
 }
 
-class ModelUpdater : Update<Model, Msg> {
-    override fun invoke(msg: Msg, model: Model) =
-        when (msg) {
-            is Msg.UserWasLoaded -> model.copy(user = msg.user) to none()
+val updater = Update<Model, Msg> { msg, model ->
+    when (msg) {
+        is Msg.UserWasLoaded -> model.copy(user = msg.user) to emptySet()
+    }  
+}
+
+fun effectHandler(repo: UserRepository): SomeFeatureEffectHandler = EffectHandler { effect, dispatch ->
+    when (effect) {
+        Effect.LoadUser -> {
+            val user = repo.loadUser()
+            dispatch(Msg.UserWasLoaded(user))
         }
+    }
 }
 ```
 
@@ -60,7 +77,7 @@ class ModelUpdater : Update<Model, Msg> {
 // ViewState<Model, Props> = suspend (Model) -> Props 
 private fun someViewState(getContext: () -> Context): ViewState<Model, Props> = { model ->
     Props(
-        localizedAge = model.user?.age?.let { context.getString(R.string.age, it) }
+        localizedAge = model.user?.age?.let { getContext().getString(R.string.age, it) }
     )
 }
 ```
@@ -69,7 +86,7 @@ private fun someViewState(getContext: () -> Context): ViewState<Model, Props> = 
 
 ```kotlin
 class SomeFragment(featureParams: () -> SomeFeatureParams) : Fragment(R.layout.fragment_some) {
-    private val feature by androidConnectors(featureParams, viewState = someViewState(::context))
+    private val feature by androidConnectors(featureParams, viewState = someViewState(::requireContext))
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
