@@ -1,5 +1,7 @@
 package family.amma.keemun
 
+import kotlinx.coroutines.CoroutineScope
+
 /**
  * @param preEffect Effect that will return the necessary dependencies to initialize the state.
  * @param init Create a default state by previous state and dependencies and run start effects.
@@ -48,5 +50,5 @@ fun interface ViewState<Model, Props> {
  * Handling `effect` and `dispatch` messages.
  */
 fun interface EffectHandler<Effect, Msg> {
-    suspend operator fun invoke(effect: Effect, dispatch: Dispatch<Msg>): Any?
+    suspend operator fun CoroutineScope.invoke(effect: Effect, dispatch: Dispatch<Msg>): Any?
 }
