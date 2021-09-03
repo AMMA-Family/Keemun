@@ -5,16 +5,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
-/**
- * [Update] builder function.
- */
-fun <State : Any, Msg : Any, Effect : Any> update(block: Update<State, Msg, Effect>): Update<State, Msg, Effect> = block
-
-/**
- * [ViewState] builder function.
- */
-fun <State : Any, Props : Any> viewState(block: ViewState<State, Props>): ViewState<State, Props> = block
-
 /** Process [effects] in [EffectHandler]. */
 fun <Effect : Any, Msg : Any> EffectHandler<Effect, Msg>.process(
     effects: Set<Effect>,

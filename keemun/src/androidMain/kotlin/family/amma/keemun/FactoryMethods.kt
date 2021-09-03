@@ -9,7 +9,6 @@ import androidx.lifecycle.ViewModelStore
 import family.amma.keemun.feature.Feature
 import family.amma.keemun.feature.FeatureParams
 import family.amma.keemun.feature.TeaFeature
-import family.amma.keemun.feature.transform
 import kotlinx.coroutines.CoroutineScope
 
 /**
@@ -145,7 +144,7 @@ fun <State : Parcelable, Msg : Any, Effect : Any> teaFeature(
     featureParams: FeatureParams<State, Msg, Effect>
 ): Feature<State, Msg> = TeaFeature(
     previousState = previousState,
-    featureScope = featureScope,
+    scope = featureScope,
     initFeature = featureParams.init,
     update = featureParams.update,
     effectHandler = featureParams.effectHandler
