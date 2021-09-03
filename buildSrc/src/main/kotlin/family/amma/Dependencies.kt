@@ -15,7 +15,7 @@ object Dependency {
     object Kotlin {
         object X {
             object Coroutines {
-                private const val version = "1.5.1"
+                private const val version = "1.5.2"
 
                 private const val mainPath = "org.jetbrains.kotlinx:kotlinx-coroutines"
                 const val core = "$mainPath-core:$version"
