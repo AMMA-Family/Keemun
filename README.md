@@ -1,3 +1,5 @@
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/family.amma/keemun/badge.svg?style=plastic)](https://maven-badges.herokuapp.com/maven-central/family.amma/keemun)
+
 # Keemun
 Add the library to your `build.gradle.kts` file.
 ```kotlin
@@ -8,7 +10,6 @@ If you want to use old version
 ```kotlin
 implementation("family.amma:tea:2.2.4")
 ```
-
 
 ## Multiplatform part
 
