@@ -18,39 +18,17 @@ import kotlinx.coroutines.CoroutineScope
  * @see ViewState
  * @see InitializationOptions
  */
-inline fun <reified Model : Parcelable, Msg : Any, Props : Any, Effect : Any> Fragment.androidConnectors(
-    crossinline featureParams: () -> FeatureParams<Model, Msg, Effect>,
-    viewState: ViewState<Model, Props>,
+inline fun <reified State : Parcelable, Msg : Any, reified OutMsg : Msg, ViewState : Any, Effect : Any> Fragment.androidConnectors(
+    crossinline featureParams: () -> FeatureParams<State, Msg, Effect>,
+    stateTransform: StateTransform<State, ViewState>,
     defaultArgs: Bundle? = null,
-    key: String? = Model::class.simpleName,
+    key: String? = State::class.simpleName,
     noinline storeProducer: () -> ViewModelStore = ::getViewModelStore,
     initOptions: InitializationOptions = InitializationOptions.WithLifecycle(Lifecycle.Event.ON_CREATE)
-): Lazy<Feature<Props, Msg>> =
-    createVMLazy<Connector<Model, Msg, Props>, Model, Msg, Props>(
-        feature = { scope, model -> teaFeature(scope, model, featureParams()) },
-        viewState = viewState, defaultArgs = defaultArgs, key = key, storeProducer = storeProducer, initOptions = initOptions
-    )
-
-/**
- * Create [Feature] with restoration of the previous state (if it was).
- * You can change [key] and [storeProducer] to change the behavior of saving and restoring state.
- * @param transform Incoming message restrictions.
- * @see FeatureParams
- * @see ViewState
- * @see InitializationOptions
- */
-inline fun <reified Model : Parcelable, Msg : Any, reified OutMsg : Msg, Props : Any, Effect : Any> Fragment.androidConnectors(
-    crossinline featureParams: () -> FeatureParams<Model, Msg, Effect>,
-    viewState: ViewState<Model, Props>,
-    crossinline transform: (Feature<Model, Msg>) -> Feature<Model, OutMsg> = ::transform,
-    defaultArgs: Bundle? = null,
-    key: String? = Model::class.simpleName,
-    noinline storeProducer: () -> ViewModelStore = ::getViewModelStore,
-    initOptions: InitializationOptions = InitializationOptions.WithLifecycle(Lifecycle.Event.ON_CREATE)
-): Lazy<Feature<Props, OutMsg>> =
-    createVMLazy<Connector<Model, OutMsg, Props>, Model, OutMsg, Props>(
+): Lazy<Feature<ViewState, OutMsg>> =
+    createVMLazy<Connector<State, OutMsg, ViewState>, State, OutMsg, ViewState>(
         feature = { scope, model -> transform(teaFeature(scope, model, featureParams())) },
-        viewState = viewState, defaultArgs = defaultArgs, key = key, storeProducer = storeProducer, initOptions = initOptions
+        viewState = stateTransform, defaultArgs = defaultArgs, key = key, storeProducer = storeProducer, initOptions = initOptions
     )
 
 /**
@@ -60,39 +38,17 @@ inline fun <reified Model : Parcelable, Msg : Any, reified OutMsg : Msg, Props :
  * @see ViewState
  * @see InitializationOptions
  */
-inline fun <reified Model : Parcelable, Msg : Any, Props : Any, Effect : Any> Fragment.sharedAndroidConnectors(
-    crossinline featureParams: () -> FeatureParams<Model, Msg, Effect>,
-    viewState: ViewState<Model, Props>,
+inline fun <reified State : Parcelable, Msg : Any, reified OutMsg : Msg, ViewState : Any, Effect : Any> Fragment.sharedAndroidConnectors(
+    crossinline featureParams: () -> FeatureParams<State, Msg, Effect>,
+    stateTransform: StateTransform<State, ViewState>,
     defaultArgs: Bundle? = null,
-    key: String? = Model::class.simpleName,
+    key: String? = State::class.simpleName,
     noinline storeProducer: () -> ViewModelStore = { requireActivity().viewModelStore },
     initOptions: InitializationOptions = InitializationOptions.WithLifecycle(Lifecycle.Event.ON_CREATE)
-): Lazy<Feature<Props, Msg>> =
-    createVMLazy<Connector<Model, Msg, Props>, Model, Msg, Props>(
-        feature = { scope, model -> teaFeature(scope, model, featureParams()) },
-        viewState = viewState, defaultArgs = defaultArgs, key = key, storeProducer = storeProducer, initOptions = initOptions
-    )
-
-/**
- * Create [Feature] with restoration of the previous state (if it was).
- * You can change [key] and [storeProducer] to change the behavior of saving and restoring state.
- * @param transform Incoming message restrictions.
- * @see FeatureParams
- * @see ViewState
- * @see InitializationOptions
- */
-inline fun <reified Model : Parcelable, Msg : Any, reified OutMsg : Msg, Props : Any, Effect : Any> Fragment.sharedAndroidConnectors(
-    crossinline featureParams: () -> FeatureParams<Model, Msg, Effect>,
-    viewState: ViewState<Model, Props>,
-    crossinline transform: (Feature<Model, Msg>) -> Feature<Model, OutMsg> = ::transform,
-    defaultArgs: Bundle? = null,
-    key: String? = Model::class.simpleName,
-    noinline storeProducer: () -> ViewModelStore = { requireActivity().viewModelStore },
-    initOptions: InitializationOptions = InitializationOptions.WithLifecycle(Lifecycle.Event.ON_CREATE)
-): Lazy<Feature<Props, OutMsg>> =
-    createVMLazy<Connector<Model, OutMsg, Props>, Model, OutMsg, Props>(
+): Lazy<Feature<ViewState, OutMsg>> =
+    createVMLazy<Connector<State, OutMsg, ViewState>, State, OutMsg, ViewState>(
         feature = { scope, model -> transform(teaFeature(scope, model, featureParams())) },
-        viewState = viewState, defaultArgs = defaultArgs, key = key, storeProducer = storeProducer, initOptions = initOptions
+        viewState = stateTransform, defaultArgs = defaultArgs, key = key, storeProducer = storeProducer, initOptions = initOptions
     )
 
 /**
@@ -102,39 +58,18 @@ inline fun <reified Model : Parcelable, Msg : Any, reified OutMsg : Msg, Props :
  * @see ViewState
  * @see InitializationOptions
  */
-inline fun <reified Model : Parcelable, Msg : Any, Props : Any, Effect : Any> ComponentActivity.androidConnectors(
+@Deprecated("Use version with StateTransform")
+inline fun <reified Model : Parcelable, Msg : Any, reified OutMsg : Msg, ViewState : Any, Effect : Any> ComponentActivity.androidConnectors(
     crossinline featureParams: () -> FeatureParams<Model, Msg, Effect>,
-    viewState: ViewState<Model, Props>,
+    stateTransform: StateTransform<Model, ViewState>,
     defaultArgs: Bundle? = null,
     key: String? = Model::class.simpleName,
     noinline storeProducer: () -> ViewModelStore = ::getViewModelStore,
     initOptions: InitializationOptions = InitializationOptions.WithLifecycle(Lifecycle.Event.ON_CREATE)
-): Lazy<Feature<Props, Msg>> =
-    createVMLazy<Connector<Model, Msg, Props>, Model, Msg, Props>(
-        feature = { scope, model -> teaFeature(scope, model, featureParams()) },
-        viewState = viewState, defaultArgs = defaultArgs, key = key, storeProducer = storeProducer, initOptions = initOptions
-    )
-
-/**
- * Create [Feature] with restoration of the previous state (if it was).
- * You can change [key] and [storeProducer] to change the behavior of saving and restoring state.
- * @param transform Incoming message restrictions.
- * @see FeatureParams
- * @see ViewState
- * @see InitializationOptions
- */
-inline fun <reified Model : Parcelable, Msg : Any, reified OutMsg : Msg, Props : Any, Effect : Any> ComponentActivity.androidConnectors(
-    crossinline featureParams: () -> FeatureParams<Model, Msg, Effect>,
-    viewState: ViewState<Model, Props>,
-    crossinline transform: (Feature<Model, Msg>) -> Feature<Model, OutMsg> = ::transform,
-    defaultArgs: Bundle? = null,
-    key: String? = Model::class.simpleName,
-    noinline storeProducer: () -> ViewModelStore = ::getViewModelStore,
-    initOptions: InitializationOptions = InitializationOptions.WithLifecycle(Lifecycle.Event.ON_CREATE)
-): Lazy<Feature<Props, OutMsg>> =
-    createVMLazy<Connector<Model, OutMsg, Props>, Model, OutMsg, Props>(
+): Lazy<Feature<ViewState, OutMsg>> =
+    createVMLazy<Connector<Model, OutMsg, ViewState>, Model, OutMsg, ViewState>(
         feature = { scope, model -> transform(teaFeature(scope, model, featureParams())) },
-        viewState = viewState, defaultArgs = defaultArgs, key = key, storeProducer = storeProducer, initOptions = initOptions
+        viewState = stateTransform, defaultArgs = defaultArgs, key = key, storeProducer = storeProducer, initOptions = initOptions
     )
 
 /** [TeaFeature] builder. */

@@ -9,9 +9,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlin.reflect.KClass
 
 /** General method for creating a connector. */
-inline fun <reified VM : ViewModel, Model : Parcelable, Msg : Any, Props : Any> SavedStateRegistryOwner.createVMLazy(
-    noinline feature: (CoroutineScope, Model?) -> Feature<Model, Msg>,
-    viewState: ViewState<Model, Props>,
+inline fun <reified VM : ViewModel, State : Parcelable, Msg : Any, ViewState : Any> SavedStateRegistryOwner.createVMLazy(
+    noinline feature: (CoroutineScope, State?) -> Feature<State, Msg>,
+    viewState: StateTransform<State, ViewState>,
     noinline storeProducer: () -> ViewModelStore,
     key: String?,
     defaultArgs: Bundle?,

@@ -3,14 +3,13 @@
 # Keemun
 Add the library to your `build.gradle.kts` file.
 ```kotlin
-implementation("family.amma:keemun:1.0.2")
+implementation("family.amma:keemun:1.1.0")
 ```
 
 If you want to use old version
 ```kotlin
 implementation("family.amma:tea:2.2.4")
 ```
-
 
 ## Multiplatform part
 

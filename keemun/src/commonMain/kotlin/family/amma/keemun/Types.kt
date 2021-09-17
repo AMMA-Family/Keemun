@@ -4,7 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 
 /**
  * @param preEffect Effect that will return the necessary dependencies to initialize the state.
- * @param init Create a default state by previous state and dependencies and run start effects.
+ * @param init [Init].
  *
  * `previous: State?` - If the launch occurs for the first time, then `previous == null`.
  *
@@ -12,8 +12,15 @@ import kotlinx.coroutines.CoroutineScope
  */
 data class InitFeature<State, Effect, Deps>(
     val preEffect: suspend () -> Deps,
-    val init: (previous: State?, Deps) -> Pair<State, Set<Effect>>
+    val init: Init<State, Effect, Deps>
 )
+
+/**
+ * Returns default state and effects by previous state and dependencies.
+ */
+fun interface Init<State, Effect, Deps> {
+    operator fun invoke(previous: State?, deps: Deps): Pair<State, Set<Effect>>
+}
 
 /** Create [InitFeature] without pre-effect. */
 @Suppress("FunctionName")
@@ -40,10 +47,10 @@ fun interface Update<State, in Msg, Effect> {
 }
 
 /**
- * Creates view properties from the current state.
+ * Transformation [T] from the feature state.
  */
-fun interface ViewState<Model, Props> {
-    suspend operator fun invoke(model: Model): Props
+fun interface StateTransform<State, T> {
+    suspend operator fun invoke(state: State): T
 }
 
 /**

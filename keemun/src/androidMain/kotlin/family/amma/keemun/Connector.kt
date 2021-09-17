@@ -27,18 +27,18 @@ import family.amma.keemun.feature.Feature
 /**
  * Wrapper for [Feature] with saving state and lifecycle handling.
  */
-class Connector<Model : Parcelable, Msg : Any, Props : Any>(
-    createFeature: (CoroutineScope, Model?) -> Feature<Model, Msg>,
-    private val viewState: ViewState<Model, Props>,
+class Connector<State : Parcelable, Msg : Any, ViewState : Any>(
+    createFeature: (CoroutineScope, State?) -> Feature<State, Msg>,
+    private val stateTransform: StateTransform<State, ViewState>,
     savedStateHandle: SavedStateHandle
-) : ViewModel(), Feature<Props, Msg> {
-    private val feature: Feature<Model, Msg>
+) : ViewModel(), Feature<ViewState, Msg> {
+    private val feature: Feature<State, Msg>
 
     override val scope: CoroutineScope get() = viewModelScope
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override val states: Flow<Props>
-        get() = feature.states.mapLatest(viewState::invoke).flowOn(Dispatchers.Default)
+    override val states: Flow<ViewState>
+        get() = feature.states.mapLatest(stateTransform::invoke).flowOn(Dispatchers.Default)
 
     init {
         feature = createFeature(scope, savedStateHandle.get(MODEL_KEY))
@@ -54,15 +54,15 @@ class Connector<Model : Parcelable, Msg : Any, Props : Any>(
     override suspend fun syncDispatch(msg: Msg) = feature syncDispatch msg
 
     /** ViewModelFactory for passing [feature] to [Connector]. */
-    class Factory<Model : Parcelable, Msg : Any, Props : Any>(
+    class Factory<State : Parcelable, Msg : Any, ViewState : Any>(
         owner: SavedStateRegistryOwner,
         defaultArgs: Bundle? = null,
-        private val feature: (CoroutineScope, Model?) -> Feature<Model, Msg>,
-        private val viewState: ViewState<Model, Props>,
+        private val feature: (CoroutineScope, State?) -> Feature<State, Msg>,
+        private val stateTransform: StateTransform<State, ViewState>,
     ) : AbstractSavedStateViewModelFactory(owner, defaultArgs) {
         @Suppress(names = ["UNCHECKED_CAST"])
         override fun <T : ViewModel> create(key: String, modelClass: Class<T>, handle: SavedStateHandle): T =
-            Connector(feature, viewState, handle) as T
+            Connector(feature, stateTransform, handle) as T
     }
 
     private companion object {
