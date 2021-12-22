@@ -15,7 +15,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
@@ -58,11 +58,11 @@ class Connector<State : Parcelable, Msg : Any, ViewState : Any>(
         owner: SavedStateRegistryOwner,
         defaultArgs: Bundle? = null,
         private val feature: (CoroutineScope, State?) -> Feature<State, Msg>,
-        private val stateTransform: StateTransform<State, ViewState>,
+        private val getStateTransform: () -> StateTransform<State, ViewState>,
     ) : AbstractSavedStateViewModelFactory(owner, defaultArgs) {
         @Suppress(names = ["UNCHECKED_CAST"])
         override fun <T : ViewModel> create(key: String, modelClass: Class<T>, handle: SavedStateHandle): T =
-            Connector(feature, stateTransform, handle) as T
+            Connector(feature, getStateTransform(), handle) as T
     }
 
     private companion object {
@@ -72,23 +72,23 @@ class Connector<State : Parcelable, Msg : Any, ViewState : Any>(
 
 /** Render [State] with [lifecycleState]. */
 @OptIn(FlowPreview::class)
-inline fun <State : Any, Msg : Any> Feature<State, Msg>.render(
+fun <State : Any, Msg : Any> Feature<State, Msg>.render(
     fragment: Fragment,
     debounceTime: Long = 0,
     lifecycleState: Lifecycle.State = Lifecycle.State.STARTED,
-    crossinline block: suspend (State) -> Unit
+    flowCollector: FlowCollector<State>
 ): Job =
     states
         .let { if (debounceTime > 0) it.debounce(debounceTime) else it }
-        .collectWithLifecycle(fragment.viewLifecycleOwner, lifecycleState, block)
+        .collectWithLifecycle(fragment.viewLifecycleOwner, lifecycleState, flowCollector)
 
 /** Collecting [T] with [lifecycleState] (without [Lifecycle.State.DESTROYED]). */
-inline fun <T> Flow<T>.collectWithLifecycle(
+fun <T> Flow<T>.collectWithLifecycle(
     lifecycleOwner: LifecycleOwner,
     lifecycleState: Lifecycle.State,
-    crossinline block: suspend (T) -> Unit
+    flowCollector: FlowCollector<T>
 ): Job {
-    val collectBlock: suspend CoroutineScope.() -> Unit = { collect(block) }
+    val collectBlock: suspend CoroutineScope.() -> Unit = { collect(flowCollector) }
     return when (lifecycleState) {
         Lifecycle.State.INITIALIZED -> lifecycleOwner.lifecycleScope.launch(block = collectBlock)
         Lifecycle.State.CREATED -> lifecycleOwner.lifecycleScope.launchWhenCreated(collectBlock)

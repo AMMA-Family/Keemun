@@ -20,7 +20,7 @@ import kotlinx.coroutines.CoroutineScope
  */
 inline fun <reified State : Parcelable, Msg : Any, reified OutMsg : Msg, ViewState : Any, Effect : Any> Fragment.androidConnectors(
     crossinline featureParams: () -> FeatureParams<State, Msg, Effect>,
-    stateTransform: StateTransform<State, ViewState>,
+    noinline getStateTransform: () -> StateTransform<State, ViewState>,
     defaultArgs: Bundle? = null,
     key: String? = State::class.simpleName,
     noinline storeProducer: () -> ViewModelStore = ::getViewModelStore,
@@ -28,7 +28,8 @@ inline fun <reified State : Parcelable, Msg : Any, reified OutMsg : Msg, ViewSta
 ): Lazy<Feature<ViewState, OutMsg>> =
     createVMLazy<Connector<State, OutMsg, ViewState>, State, OutMsg, ViewState>(
         feature = { scope, model -> transform(teaFeature(scope, model, featureParams())) },
-        viewState = stateTransform, defaultArgs = defaultArgs, key = key, storeProducer = storeProducer, initOptions = initOptions
+        getStateTransform = getStateTransform,
+        defaultArgs = defaultArgs, key = key, storeProducer = storeProducer, initOptions = initOptions
     )
 
 /**
@@ -40,7 +41,7 @@ inline fun <reified State : Parcelable, Msg : Any, reified OutMsg : Msg, ViewSta
  */
 inline fun <reified State : Parcelable, Msg : Any, reified OutMsg : Msg, ViewState : Any, Effect : Any> Fragment.sharedAndroidConnectors(
     crossinline featureParams: () -> FeatureParams<State, Msg, Effect>,
-    stateTransform: StateTransform<State, ViewState>,
+    noinline getStateTransform: () -> StateTransform<State, ViewState>,
     defaultArgs: Bundle? = null,
     key: String? = State::class.simpleName,
     noinline storeProducer: () -> ViewModelStore = { requireActivity().viewModelStore },
@@ -48,7 +49,8 @@ inline fun <reified State : Parcelable, Msg : Any, reified OutMsg : Msg, ViewSta
 ): Lazy<Feature<ViewState, OutMsg>> =
     createVMLazy<Connector<State, OutMsg, ViewState>, State, OutMsg, ViewState>(
         feature = { scope, model -> transform(teaFeature(scope, model, featureParams())) },
-        viewState = stateTransform, defaultArgs = defaultArgs, key = key, storeProducer = storeProducer, initOptions = initOptions
+        getStateTransform = getStateTransform,
+        defaultArgs = defaultArgs, key = key, storeProducer = storeProducer, initOptions = initOptions
     )
 
 /**
@@ -61,7 +63,7 @@ inline fun <reified State : Parcelable, Msg : Any, reified OutMsg : Msg, ViewSta
 @Deprecated("Use version with StateTransform")
 inline fun <reified Model : Parcelable, Msg : Any, reified OutMsg : Msg, ViewState : Any, Effect : Any> ComponentActivity.androidConnectors(
     crossinline featureParams: () -> FeatureParams<Model, Msg, Effect>,
-    stateTransform: StateTransform<Model, ViewState>,
+    noinline getStateTransform: () -> StateTransform<Model, ViewState>,
     defaultArgs: Bundle? = null,
     key: String? = Model::class.simpleName,
     noinline storeProducer: () -> ViewModelStore = ::getViewModelStore,
@@ -69,7 +71,8 @@ inline fun <reified Model : Parcelable, Msg : Any, reified OutMsg : Msg, ViewSta
 ): Lazy<Feature<ViewState, OutMsg>> =
     createVMLazy<Connector<Model, OutMsg, ViewState>, Model, OutMsg, ViewState>(
         feature = { scope, model -> transform(teaFeature(scope, model, featureParams())) },
-        viewState = stateTransform, defaultArgs = defaultArgs, key = key, storeProducer = storeProducer, initOptions = initOptions
+        getStateTransform = getStateTransform,
+        defaultArgs = defaultArgs, key = key, storeProducer = storeProducer, initOptions = initOptions
     )
 
 /** [TeaFeature] builder. */

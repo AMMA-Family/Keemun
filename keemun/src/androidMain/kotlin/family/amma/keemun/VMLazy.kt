@@ -11,7 +11,7 @@ import kotlin.reflect.KClass
 /** General method for creating a connector. */
 inline fun <reified VM : ViewModel, State : Parcelable, Msg : Any, ViewState : Any> SavedStateRegistryOwner.createVMLazy(
     noinline feature: (CoroutineScope, State?) -> Feature<State, Msg>,
-    viewState: StateTransform<State, ViewState>,
+    noinline getStateTransform: () -> StateTransform<State, ViewState>,
     noinline storeProducer: () -> ViewModelStore,
     key: String?,
     defaultArgs: Bundle?,
@@ -20,7 +20,7 @@ inline fun <reified VM : ViewModel, State : Parcelable, Msg : Any, ViewState : A
     return withOptions(
         initOptions = initOptions,
         lazyObj = VMLazy(VM::class, storeProducer, key) {
-            Connector.Factory(this, defaultArgs, feature, viewState)
+            Connector.Factory(this, defaultArgs, feature, getStateTransform)
         }
     )
 }

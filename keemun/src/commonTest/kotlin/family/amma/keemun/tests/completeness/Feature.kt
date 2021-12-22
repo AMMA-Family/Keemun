@@ -22,7 +22,7 @@ sealed class CompletenessEff {
 
 fun feature(scope: CoroutineScope, repeatCount: Int) = TeaFeature(
     previousState = null,
-    featureScope = scope,
+    scope = scope,
     initFeature = init(repeatCount),
     update = update,
     effectHandler = effectHandler

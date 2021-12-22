@@ -24,7 +24,7 @@ sealed class ConsistentEff {
 
 fun feature(scope: CoroutineScope) = TeaFeature(
     previousState = null,
-    featureScope = scope,
+    scope = scope,
     initFeature = init,
     update = consistentUpdate,
     effectHandler = effectHandler
