@@ -3,12 +3,7 @@
 # Keemun
 Add the library to your `build.gradle.kts` file.
 ```kotlin
-implementation("family.amma:keemun:1.1.0")
-```
-
-If you want to use old version
-```kotlin
-implementation("family.amma:tea:2.2.4")
+implementation("family.amma:keemun:1.2.3")
 ```
 
 ## Multiplatform part
@@ -16,11 +11,11 @@ implementation("family.amma:tea:2.2.4")
 ### Entities
 ```kotlin
 @Parcelize
-data class Model(
+data class State(
     val user: User?
 ) : Parcelable
 
-data class Props(
+data class ViewState(
     // Example
     // English - "Age: 30"
     // Russian - "Возраст: 30"
@@ -41,28 +36,28 @@ sealed class Effect {
 
 
 ```kotlin
-typealias SomeFeatureParams = FeatureParams<Model, Msg, Effect>
+typealias SomeFeatureParams = FeatureParams<State, Msg, Effect>
 typealias SomeFeatureEffectHandler = EffectHandler<Effect, Msg>
 
 internal fun someFeatureParams(effectHandler: SomeFeatureEffectHandler): SomeFeatureParams =
     FeatureParams(
         init = init,
-        update = modelUpdater,
+        update = updater,
         effectHandler = effectHandler
     )
 
-val init = InitFeature<Model, Effect> { previous ->
-    val model = previous ?: Model(user = null)
-    model to setOf(Effect.LoadUser)
+val init = InitFeature<State, Effect> { previous ->
+    val state = previous ?: State(user = null)
+    state to setOf(Effect.LoadUser)
 }
 
-val updater = Update<Model, Msg> { msg, model ->
+val updater = Update<State, Msg> { msg, state ->
     when (msg) {
-        is Msg.UserWasLoaded -> model.copy(user = msg.user) to emptySet()
+        is Msg.UserWasLoaded -> state.copy(user = msg.user) to emptySet()
     }  
 }
 
-fun effectHandler(repo: UserRepository): SomeFeatureEffectHandler = EffectHandler { effect, dispatch ->
+fun effectHandler(repo: UserRepository) = SomeFeatureEffectHandler { effect, dispatch ->
     when (effect) {
         Effect.LoadUser -> {
             val user = repo.loadUser()
@@ -75,10 +70,10 @@ fun effectHandler(repo: UserRepository): SomeFeatureEffectHandler = EffectHandle
 ## Platform part (Android)
 
 ```kotlin
-// ViewState<Model, Props> = suspend (Model) -> Props 
-private fun someViewState(getContext: () -> Context): ViewState<Model, Props> = { model ->
-    Props(
-        localizedAge = model.user?.age?.let { getContext().getString(R.string.age, it) }
+// StateTransform<State, ViewState> = suspend (State) -> ViewState 
+private fun stateTransform(getContext: () -> Context) = StateTransform<State, ViewState> { state ->
+    ViewState(
+        localizedAge = state.user?.age?.let { getContext().getString(R.string.age, it) }
     )
 }
 ```
@@ -87,15 +82,15 @@ private fun someViewState(getContext: () -> Context): ViewState<Model, Props> = 
 
 ```kotlin
 class SomeFragment(featureParams: () -> SomeFeatureParams) : Fragment(R.layout.fragment_some) {
-    private val feature by androidConnectors(featureParams, viewState = someViewState(::requireContext))
+    private val feature by androidConnectors(featureParams, getStateTransform = { stateTransform(::requireContext) })
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        feature.render(this) { props ->
-            ageTextView.text = props.localizedAge
+        feature.render(this) { viewState ->
+            ageTextView.text = viewState.localizedAge
         }
         // OR 
-        // feature.collectWithLifecycle(viewLifecycleOwner, Lifecycle.State.STARTED) { props -> }
+        // feature.collectWithLifecycle(viewLifecycleOwner, Lifecycle.State.STARTED) { viewState -> }
     }
 }
 ```

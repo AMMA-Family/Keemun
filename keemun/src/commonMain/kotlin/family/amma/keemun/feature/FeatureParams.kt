@@ -13,5 +13,11 @@ import family.amma.keemun.Update
 data class FeatureParams<State : Any, Msg : Any, Effect : Any>(
     val init: InitFeature<State, Effect, *>,
     val update: Update<State, Msg, Effect>,
-    val effectHandler: EffectHandler<Effect, Msg>
-)
+    val effectHandlers: Set<EffectHandler<Effect, Msg>>
+) {
+    constructor(
+        init: InitFeature<State, Effect, *>,
+        update: Update<State, Msg, Effect>,
+        effectHandler: EffectHandler<Effect, Msg>
+    ) : this(init, update, setOf(effectHandler))
+}

@@ -157,7 +157,7 @@ inline fun <reified VM : ViewModel, Model : Parcelable, Msg : Any, Props : Any> 
     return withOptions(
         initOptions = initOptions,
         lazyObj = VMLazy(VM::class, storeProducer, key) {
-            Connector.Factory(this, defaultArgs, feature, viewState::invoke)
+            Connector.Factory(this, defaultArgs, feature) { StateTransform { viewState(it) } }
         }
     )
 }

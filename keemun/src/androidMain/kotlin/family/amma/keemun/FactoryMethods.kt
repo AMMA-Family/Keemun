@@ -27,7 +27,7 @@ inline fun <reified State : Parcelable, Msg : Any, reified OutMsg : Msg, ViewSta
     initOptions: InitializationOptions = InitializationOptions.WithLifecycle(Lifecycle.Event.ON_CREATE)
 ): Lazy<Feature<ViewState, OutMsg>> =
     createVMLazy<Connector<State, OutMsg, ViewState>, State, OutMsg, ViewState>(
-        feature = { scope, model -> transform(teaFeature(scope, model, featureParams())) },
+        feature = { scope, state -> transform(teaFeature(scope, state, featureParams())) },
         getStateTransform = getStateTransform,
         defaultArgs = defaultArgs, key = key, storeProducer = storeProducer, initOptions = initOptions
     )
@@ -48,7 +48,7 @@ inline fun <reified State : Parcelable, Msg : Any, reified OutMsg : Msg, ViewSta
     initOptions: InitializationOptions = InitializationOptions.WithLifecycle(Lifecycle.Event.ON_CREATE)
 ): Lazy<Feature<ViewState, OutMsg>> =
     createVMLazy<Connector<State, OutMsg, ViewState>, State, OutMsg, ViewState>(
-        feature = { scope, model -> transform(teaFeature(scope, model, featureParams())) },
+        feature = { scope, state -> transform(teaFeature(scope, state, featureParams())) },
         getStateTransform = getStateTransform,
         defaultArgs = defaultArgs, key = key, storeProducer = storeProducer, initOptions = initOptions
     )
@@ -60,17 +60,16 @@ inline fun <reified State : Parcelable, Msg : Any, reified OutMsg : Msg, ViewSta
  * @see ViewState
  * @see InitializationOptions
  */
-@Deprecated("Use version with StateTransform")
-inline fun <reified Model : Parcelable, Msg : Any, reified OutMsg : Msg, ViewState : Any, Effect : Any> ComponentActivity.androidConnectors(
-    crossinline featureParams: () -> FeatureParams<Model, Msg, Effect>,
-    noinline getStateTransform: () -> StateTransform<Model, ViewState>,
+inline fun <reified State : Parcelable, Msg : Any, reified OutMsg : Msg, ViewState : Any, Effect : Any> ComponentActivity.androidConnectors(
+    crossinline featureParams: () -> FeatureParams<State, Msg, Effect>,
+    noinline getStateTransform: () -> StateTransform<State, ViewState>,
     defaultArgs: Bundle? = null,
-    key: String? = Model::class.simpleName,
+    key: String? = State::class.simpleName,
     noinline storeProducer: () -> ViewModelStore = ::getViewModelStore,
     initOptions: InitializationOptions = InitializationOptions.WithLifecycle(Lifecycle.Event.ON_CREATE)
 ): Lazy<Feature<ViewState, OutMsg>> =
-    createVMLazy<Connector<Model, OutMsg, ViewState>, Model, OutMsg, ViewState>(
-        feature = { scope, model -> transform(teaFeature(scope, model, featureParams())) },
+    createVMLazy<Connector<State, OutMsg, ViewState>, State, OutMsg, ViewState>(
+        feature = { scope, state -> transform(teaFeature(scope, state, featureParams())) },
         getStateTransform = getStateTransform,
         defaultArgs = defaultArgs, key = key, storeProducer = storeProducer, initOptions = initOptions
     )
@@ -82,8 +81,8 @@ fun <State : Parcelable, Msg : Any, Effect : Any> teaFeature(
     featureParams: FeatureParams<State, Msg, Effect>
 ): Feature<State, Msg> = TeaFeature(
     previousState = previousState,
-    scope = featureScope,
+    coroutineScope = featureScope,
     initFeature = featureParams.init,
     update = featureParams.update,
-    effectHandler = featureParams.effectHandler
+    effectHandlers = featureParams.effectHandlers
 )

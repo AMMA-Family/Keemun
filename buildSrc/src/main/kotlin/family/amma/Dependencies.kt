@@ -3,13 +3,13 @@
 private const val kotlinVersion = "1.6.10"
 
 object BuildPlugin {
-    const val gradle = "com.android.tools.build:gradle:7.0.4"
+    const val gradle = "com.android.tools.build:gradle:7.1.2"
     const val kotlin = "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
 }
 
 object Dependency {
     object AndroidX {
-        const val fragment = "androidx.fragment:fragment-ktx:1.4.0"
+        const val fragment = "androidx.fragment:fragment-ktx:1.4.1"
     }
 
     object Kotlin {
