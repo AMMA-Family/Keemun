@@ -34,7 +34,6 @@ class ConsistentTest {
         val modelsListDef = feature.states.collectAsync(scope)
         val userId = 101
         val expected = listOf(
-            ConsistentModel(progress = false, loadedUser = null),
             ConsistentModel(progress = true, loadedUser = null),
             ConsistentModel(progress = false, loadedUser = User(id = userId))
         )

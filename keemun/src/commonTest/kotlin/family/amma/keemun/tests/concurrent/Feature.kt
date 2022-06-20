@@ -22,10 +22,10 @@ sealed class ConcurrentEff {
 
 fun feature(scope: CoroutineScope, repeatCount: Int) = TeaFeature(
     previousState = null,
-    scope = scope,
+    coroutineScope = scope,
     initFeature = init(repeatCount),
     update = update,
-    effectHandler = effectHandler
+    effectHandlers = setOf(effectHandler)
 )
 
 private fun init(repeatCount: Int) = InitFeature<ConcurrentModel, ConcurrentEff> { previous ->

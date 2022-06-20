@@ -1,7 +1,6 @@
 package family.amma.keemun
 
 import android.os.Bundle
-import android.os.Parcelable
 import androidx.lifecycle.*
 import androidx.savedstate.SavedStateRegistryOwner
 import family.amma.keemun.feature.Feature
@@ -9,9 +8,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlin.reflect.KClass
 
 /** General method for creating a connector. */
-inline fun <reified VM : ViewModel, State : Parcelable, Msg : Any, ViewState : Any> SavedStateRegistryOwner.createVMLazy(
+inline fun <reified VM : ViewModel, State : Any, Msg : Any, ViewState : Any> SavedStateRegistryOwner.createVMLazy(
     noinline feature: (CoroutineScope, State?) -> Feature<State, Msg>,
     noinline getStateTransform: () -> StateTransform<State, ViewState>,
+    onSaveState: BundleFuns<State>,
     noinline storeProducer: () -> ViewModelStore,
     key: String?,
     defaultArgs: Bundle?,
@@ -20,7 +20,7 @@ inline fun <reified VM : ViewModel, State : Parcelable, Msg : Any, ViewState : A
     return withOptions(
         initOptions = initOptions,
         lazyObj = VMLazy(VM::class, storeProducer, key) {
-            Connector.Factory(this, defaultArgs, feature, getStateTransform)
+            Connector.Factory(this, defaultArgs, feature, getStateTransform, onSaveState)
         }
     )
 }

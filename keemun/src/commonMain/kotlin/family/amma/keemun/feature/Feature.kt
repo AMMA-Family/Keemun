@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.*
  */
 interface Feature<State : Any, Msg : Any> {
     /** Flow of states. */
-    val states: Flow<State>
+    val states: SharedFlow<State>
 
     /** The main scope on which all coroutines will be launched. */
     val scope: CoroutineScope

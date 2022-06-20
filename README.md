@@ -3,17 +3,16 @@
 # Keemun
 Add the library to your `build.gradle.kts` file.
 ```kotlin
-implementation("family.amma:keemun:1.2.3")
+implementation("family.amma:keemun:1.3.0")
 ```
 
 ## Multiplatform part
 
 ### Entities
 ```kotlin
-@Parcelize
 data class State(
     val user: User?
-) : Parcelable
+)
 
 data class ViewState(
     // Example

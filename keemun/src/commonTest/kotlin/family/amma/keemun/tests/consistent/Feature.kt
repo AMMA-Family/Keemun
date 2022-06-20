@@ -24,10 +24,10 @@ sealed class ConsistentEff {
 
 fun feature(scope: CoroutineScope) = TeaFeature(
     previousState = null,
-    scope = scope,
+    coroutineScope = scope,
     initFeature = init,
     update = consistentUpdate,
-    effectHandler = effectHandler
+    effectHandlers = setOf(effectHandler)
 )
 
 private val init = InitFeature<ConsistentModel, ConsistentEff> { previous ->
