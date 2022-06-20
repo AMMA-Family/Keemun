@@ -1,6 +1,9 @@
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/family.amma/keemun/badge.svg?style=plastic)](https://maven-badges.herokuapp.com/maven-central/family.amma/keemun)
 
 # Keemun
+Keemun is multiplatform Tea library.
+
+
 Add the library to your `build.gradle.kts` file.
 ```kotlin
 implementation("family.amma:keemun:1.3.0")
@@ -12,14 +15,6 @@ implementation("family.amma:keemun:1.3.0")
 ```kotlin
 data class State(
     val user: User?
-)
-
-data class ViewState(
-    // Example
-    // English - "Age: 30"
-    // Russian - "Возраст: 30"
-    // etc
-    val localizedAge: String?
 )
 
 sealed class Msg {
@@ -69,6 +64,14 @@ fun effectHandler(repo: UserRepository) = SomeFeatureEffectHandler { effect, dis
 ## Platform part (Android)
 
 ```kotlin
+data class ViewState(
+    // Example
+    // English - "Age: 30"
+    // Russian - "Возраст: 30"
+    // etc
+    val localizedAge: String?
+)
+
 // StateTransform<State, ViewState> = suspend (State) -> ViewState 
 private fun stateTransform(getContext: () -> Context) = StateTransform<State, ViewState> { state ->
     ViewState(
